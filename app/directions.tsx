@@ -13,12 +13,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  FadeIn,
-} from "react-native-reanimated";
 import Colors from "@/constants/colors";
 import { ROOMS, getDirections, DirectionStep, RouteType } from "@/constants/hotel-data";
 
@@ -47,6 +41,7 @@ function StepCard({
       "elevator-passenger": "elevator-passenger",
       "elevator-up": "elevator-up",
       "sofa-outline": "sofa-outline",
+      "silverware-fork-knife": "silverware-fork-knife",
     };
     return iconMap[icon] || "map-marker";
   };
@@ -112,9 +107,9 @@ function StepCard({
             </View>
             <View style={styles.stepTextArea}>
               <Text style={styles.stepLandmark}>{step.landmark}</Text>
-              {step.distance ? (
+              {!!step.distance && (
                 <Text style={styles.stepDistance}>{step.distance}</Text>
-              ) : null}
+              )}
             </View>
           </View>
 
@@ -127,7 +122,7 @@ function StepCard({
             {step.instruction}
           </Text>
 
-          {step.accessibleNote && (
+          {!!step.accessibleNote && (
             <View style={styles.accessibleNote}>
               <MaterialCommunityIcons
                 name="wheelchair-accessibility"
@@ -147,8 +142,9 @@ function StepCard({
 
 export default function DirectionsScreen() {
   const insets = useSafeAreaInsets();
-  const { roomNumber, routeType } = useLocalSearchParams<{
+  const { roomNumber, tower, routeType } = useLocalSearchParams<{
     roomNumber: string;
+    tower: string;
     routeType: string;
   }>();
   const [currentStep, setCurrentStep] = useState(0);
@@ -156,7 +152,9 @@ export default function DirectionsScreen() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
-  const room = ROOMS.find((r) => r.number === roomNumber);
+  const room = ROOMS.find(
+    (r) => r.number === roomNumber && r.tower === (tower as "North" | "South")
+  );
   const steps = room
     ? getDirections(room, (routeType as RouteType) || "accessible")
     : [];
@@ -170,7 +168,7 @@ export default function DirectionsScreen() {
       Speech.stop();
       let text = step.instruction;
       if (step.accessibleNote) {
-        text += `. Note: ${step.accessibleNote}`;
+        text += `. Accessibility note: ${step.accessibleNote}`;
       }
       setIsSpeaking(true);
       Speech.speak(text, {
@@ -197,9 +195,7 @@ export default function DirectionsScreen() {
     };
   }, []);
 
-  const handleStepPress = (index: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setCurrentStep(index);
+  const scrollToStep = (index: number) => {
     flatListRef.current?.scrollToIndex({
       index,
       animated: true,
@@ -207,27 +203,29 @@ export default function DirectionsScreen() {
     });
   };
 
+  const handleStepPress = (index: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setCurrentStep(index);
+    scrollToStep(index);
+  };
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       const next = currentStep + 1;
       setCurrentStep(next);
-      flatListRef.current?.scrollToIndex({
-        index: next,
-        animated: true,
-        viewOffset: 80,
-      });
+      scrollToStep(next);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (voiceEnabled) {
-        Speech.speak("You have arrived at your room. Enjoy your stay!", {
-          language: "en-US",
-          rate: 0.85,
-        });
+        Speech.speak(
+          `You have arrived at Room ${roomNumber}. Enjoy your stay at the Hilton DoubleTree!`,
+          { language: "en-US", rate: 0.85 }
+        );
       }
       Alert.alert(
         "You've Arrived!",
-        `Welcome to Room ${roomNumber}. Enjoy your stay at the Hilton DoubleTree!`,
+        `Welcome to Room ${roomNumber}, ${tower} Tower.\n\nEnjoy your stay at the Hilton DoubleTree at Universal Orlando!`,
         [{ text: "Done", onPress: () => router.dismissAll() }]
       );
     }
@@ -238,11 +236,7 @@ export default function DirectionsScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const prev = currentStep - 1;
       setCurrentStep(prev);
-      flatListRef.current?.scrollToIndex({
-        index: prev,
-        animated: true,
-        viewOffset: 80,
-      });
+      scrollToStep(prev);
     }
   };
 
@@ -261,7 +255,7 @@ export default function DirectionsScreen() {
     router.back();
   };
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  const progress = steps.length ? ((currentStep + 1) / steps.length) * 100 : 0;
 
   if (!room) {
     return (
@@ -296,10 +290,10 @@ export default function DirectionsScreen() {
           </Pressable>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>
-              Room {roomNumber}
+              Room {roomNumber} · {tower} Tower
             </Text>
             <Text style={styles.headerSubtitle}>
-              {routeType === "accessible" ? "Accessible" : "Standard"} Route
+              {routeType === "accessible" ? "Accessible" : "Standard"} Route · Floor {room.floor}
             </Text>
           </View>
           <Pressable
@@ -321,12 +315,7 @@ export default function DirectionsScreen() {
 
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <Animated.View
-              style={[
-                styles.progressFill,
-                { width: `${progress}%` },
-              ]}
-            />
+            <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
           <Text style={styles.progressText}>
             Step {currentStep + 1} of {steps.length}
@@ -408,9 +397,7 @@ export default function DirectionsScreen() {
               pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
             ]}
             accessibilityLabel={
-              currentStep === steps.length - 1
-                ? "You have arrived"
-                : "Next step"
+              currentStep === steps.length - 1 ? "You have arrived" : "Next step"
             }
             accessibilityRole="button"
           >
@@ -418,11 +405,7 @@ export default function DirectionsScreen() {
               {currentStep === steps.length - 1 ? "Arrived" : "Next"}
             </Text>
             <Ionicons
-              name={
-                currentStep === steps.length - 1
-                  ? "checkmark-circle"
-                  : "arrow-forward"
-              }
+              name={currentStep === steps.length - 1 ? "checkmark-circle" : "arrow-forward"}
               size={22}
               color={Colors.textLight}
             />
@@ -453,17 +436,21 @@ const styles = StyleSheet.create({
   },
   headerCenter: {
     alignItems: "center",
+    flex: 1,
+    paddingHorizontal: 8,
   },
   headerTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 18,
+    fontSize: 17,
     color: Colors.text,
+    textAlign: "center",
   },
   headerSubtitle: {
     fontFamily: "Inter_400Regular",
     fontSize: 13,
     color: Colors.textSecondary,
     marginTop: 2,
+    textAlign: "center",
   },
   voiceButton: {
     width: 40,
@@ -498,12 +485,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    gap: 0,
   },
   stepCard: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    marginBottom: 4,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: "hidden",
@@ -514,7 +500,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F0F7F3",
   },
   stepCardCompleted: {
-    opacity: 0.7,
+    opacity: 0.65,
     borderColor: Colors.stepCompleted,
   },
   stepRow: {
@@ -555,8 +541,10 @@ const styles = StyleSheet.create({
   stepLine: {
     width: 2,
     flex: 1,
+    minHeight: 16,
     backgroundColor: Colors.border,
     marginTop: 4,
+    marginBottom: -6,
   },
   stepLineCompleted: {
     backgroundColor: Colors.stepCompleted,
@@ -586,12 +574,12 @@ const styles = StyleSheet.create({
   },
   stepLandmark: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.text,
   },
   stepDistance: {
     fontFamily: "Inter_400Regular",
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textSecondary,
   },
   stepInstruction: {
@@ -611,14 +599,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accessibleBg,
     padding: 10,
     borderRadius: 10,
-    marginTop: 2,
   },
   accessibleNoteText: {
     fontFamily: "Inter_400Regular",
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.accessible,
     flex: 1,
-    lineHeight: 20,
+    lineHeight: 19,
   },
   bottomBar: {
     position: "absolute",

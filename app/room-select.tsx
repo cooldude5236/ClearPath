@@ -23,17 +23,20 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: (r: Room) => void 
         styles.roomCard,
         pressed && styles.roomCardPressed,
       ]}
-      accessibilityLabel={`Room ${room.number}, Floor ${room.floor}, ${room.wing} Wing, ${room.type}${room.accessibleRoom ? ", Accessible room" : ""}`}
+      accessibilityLabel={`Room ${room.number}, Floor ${room.floor}, ${room.tower} Tower, ${room.type}${room.accessibleRoom ? ", Accessible room" : ""}`}
       accessibilityRole="button"
     >
       <View style={styles.roomLeft}>
-        <View style={styles.roomNumberBadge}>
+        <View style={[
+          styles.roomNumberBadge,
+          { backgroundColor: room.tower === "North" ? Colors.primary : Colors.primaryLight },
+        ]}>
           <Text style={styles.roomNumber}>{room.number}</Text>
         </View>
         <View style={styles.roomInfo}>
           <Text style={styles.roomType}>{room.type}</Text>
           <Text style={styles.roomDetail}>
-            Floor {room.floor} {"\u00B7"} {room.wing} Wing
+            Floor {room.floor} {"\u00B7"} {room.tower} Tower
           </Text>
         </View>
       </View>
@@ -57,31 +60,35 @@ export default function RoomSelectScreen() {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+  const [selectedTower, setSelectedTower] = useState<"North" | "South" | null>(null);
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const webBottomInset = Platform.OS === "web" ? 34 : 0;
 
   const floors = useMemo(() => {
     const floorSet = new Set(ROOMS.map((r) => r.floor));
-    return Array.from(floorSet).sort();
+    return Array.from(floorSet).sort((a, b) => a - b);
   }, []);
 
   const filteredRooms = useMemo(() => {
     let result = ROOMS;
+    if (selectedTower) {
+      result = result.filter((r) => r.tower === selectedTower);
+    }
     if (selectedFloor !== null) {
       result = result.filter((r) => r.floor === selectedFloor);
     }
     if (search.trim()) {
-      result = result.filter((r) => r.number.includes(search.trim()));
+      result = result.filter((r) => r.number.startsWith(search.trim()));
     }
     return result;
-  }, [selectedFloor, search]);
+  }, [selectedTower, selectedFloor, search]);
 
   const handleSelectRoom = (room: Room) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: "/route-choice",
-      params: { roomNumber: room.number },
+      params: { roomNumber: room.number, tower: room.tower },
     });
   };
 
@@ -118,7 +125,7 @@ export default function RoomSelectScreen() {
             <Ionicons name="search" size={20} color={Colors.textSecondary} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search room number..."
+              placeholder="Room number (e.g. 1205)"
               placeholderTextColor={Colors.textSecondary}
               value={search}
               onChangeText={setSearch}
@@ -132,6 +139,37 @@ export default function RoomSelectScreen() {
               </Pressable>
             )}
           </View>
+        </View>
+
+        <View style={styles.towerFilter}>
+          {(["North", "South"] as const).map((t) => (
+            <Pressable
+              key={t}
+              onPress={() => {
+                setSelectedTower(selectedTower === t ? null : t);
+                Haptics.selectionAsync();
+              }}
+              style={[
+                styles.towerChip,
+                selectedTower === t && styles.towerChipActive,
+              ]}
+              accessibilityLabel={`Filter by ${t} Tower`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: selectedTower === t }}
+            >
+              <MaterialCommunityIcons
+                name="office-building"
+                size={14}
+                color={selectedTower === t ? Colors.textLight : Colors.textSecondary}
+              />
+              <Text style={[
+                styles.towerChipText,
+                selectedTower === t && styles.towerChipTextActive,
+              ]}>
+                {t} Tower
+              </Text>
+            </Pressable>
+          ))}
         </View>
 
         <View style={styles.floorFilter}>
@@ -148,20 +186,18 @@ export default function RoomSelectScreen() {
             accessibilityRole="button"
             accessibilityState={{ selected: selectedFloor === null }}
           >
-            <Text
-              style={[
-                styles.floorChipText,
-                selectedFloor === null && styles.floorChipTextActive,
-              ]}
-            >
-              All
+            <Text style={[
+              styles.floorChipText,
+              selectedFloor === null && styles.floorChipTextActive,
+            ]}>
+              All Floors
             </Text>
           </Pressable>
           {floors.map((floor) => (
             <Pressable
               key={floor}
               onPress={() => {
-                setSelectedFloor(floor);
+                setSelectedFloor(floor === selectedFloor ? null : floor);
                 Haptics.selectionAsync();
               }}
               style={[
@@ -172,22 +208,26 @@ export default function RoomSelectScreen() {
               accessibilityRole="button"
               accessibilityState={{ selected: selectedFloor === floor }}
             >
-              <Text
-                style={[
-                  styles.floorChipText,
-                  selectedFloor === floor && styles.floorChipTextActive,
-                ]}
-              >
-                Floor {floor}
+              <Text style={[
+                styles.floorChipText,
+                selectedFloor === floor && styles.floorChipTextActive,
+              ]}>
+                {floor}
               </Text>
             </Pressable>
           ))}
         </View>
+
+        {filteredRooms.length > 0 && (
+          <Text style={styles.resultCount}>
+            {filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""} found
+          </Text>
+        )}
       </View>
 
       <FlatList
         data={filteredRooms}
-        keyExtractor={(item) => item.number}
+        keyExtractor={(item) => `${item.tower}-${item.number}`}
         renderItem={({ item }) => (
           <RoomCard room={item} onSelect={handleSelectRoom} />
         )}
@@ -201,7 +241,9 @@ export default function RoomSelectScreen() {
           <View style={styles.emptyState}>
             <Ionicons name="bed-outline" size={48} color={Colors.textSecondary} />
             <Text style={styles.emptyText}>No rooms found</Text>
-            <Text style={styles.emptySubtext}>Try a different room number or floor</Text>
+            <Text style={styles.emptySubtext}>
+              Try a different room number, floor, or tower
+            </Text>
           </View>
         }
       />
@@ -251,30 +293,66 @@ const styles = StyleSheet.create({
     color: Colors.text,
     padding: 0,
   },
+  towerFilter: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 10,
+  },
+  towerChip: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.surfaceAlt,
+    borderWidth: 1.5,
+    borderColor: "transparent",
+  },
+  towerChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  towerChipText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  towerChipTextActive: {
+    color: Colors.textLight,
+  },
   floorFilter: {
     flexDirection: "row",
-    gap: 8,
+    gap: 6,
     flexWrap: "wrap",
+    marginBottom: 8,
   },
   floorChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: Colors.surfaceAlt,
     borderWidth: 1.5,
     borderColor: "transparent",
   },
   floorChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
   },
   floorChipText: {
     fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textSecondary,
   },
   floorChipTextActive: {
     color: Colors.textLight,
+  },
+  resultCount: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
   listContent: {
     padding: 16,
@@ -289,7 +367,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: 2,
+    marginBottom: 8,
   },
   roomCardPressed: {
     backgroundColor: Colors.surfaceAlt,
@@ -301,16 +379,16 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   roomNumberBadge: {
-    width: 52,
+    width: 56,
     height: 52,
     borderRadius: 14,
-    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 4,
   },
   roomNumber: {
     fontFamily: "Inter_700Bold",
-    fontSize: 18,
+    fontSize: 17,
     color: Colors.textLight,
   },
   roomInfo: {
@@ -354,5 +432,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: Colors.textSecondary,
+    textAlign: "center",
   },
 });

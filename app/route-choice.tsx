@@ -5,6 +5,7 @@ import {
   View,
   Pressable,
   Platform,
+  ScrollView,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,9 +16,11 @@ import { ROOMS } from "@/constants/hotel-data";
 
 export default function RouteChoiceScreen() {
   const insets = useSafeAreaInsets();
-  const { roomNumber } = useLocalSearchParams<{ roomNumber: string }>();
+  const { roomNumber, tower } = useLocalSearchParams<{ roomNumber: string; tower: string }>();
 
-  const room = ROOMS.find((r) => r.number === roomNumber);
+  const room = ROOMS.find(
+    (r) => r.number === roomNumber && r.tower === (tower as "North" | "South")
+  );
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const webBottomInset = Platform.OS === "web" ? 34 : 0;
@@ -26,7 +29,7 @@ export default function RouteChoiceScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: "/directions",
-      params: { roomNumber, routeType },
+      params: { roomNumber, tower, routeType },
     });
   };
 
@@ -49,14 +52,11 @@ export default function RouteChoiceScreen() {
     );
   }
 
+  const corridorName = { A: "East", B: "North", C: "West", D: "South" }[room.side];
+
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.topSection,
-          { paddingTop: insets.top + webTopInset + 12 },
-        ]}
-      >
+      <View style={[styles.topSection, { paddingTop: insets.top + webTopInset + 12 }]}>
         <Pressable
           onPress={handleBack}
           accessibilityLabel="Go back"
@@ -67,35 +67,51 @@ export default function RouteChoiceScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.roomSummary}>
-        <View style={styles.roomBadge}>
-          <MaterialCommunityIcons name="door" size={28} color={Colors.textLight} />
-        </View>
-        <Text style={styles.roomTitle} accessibilityRole="header">
-          Room {room.number}
-        </Text>
-        <Text style={styles.roomSubtitle}>
-          Floor {room.floor} {"\u00B7"} {room.wing} Wing {"\u00B7"} {room.type}
-        </Text>
-        {room.accessibleRoom && (
-          <View style={styles.accessibleIndicator}>
-            <MaterialCommunityIcons
-              name="wheelchair-accessibility"
-              size={16}
-              color={Colors.accessible}
-            />
-            <Text style={styles.accessibleLabel}>Accessible Room</Text>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: insets.bottom + webBottomInset + 16 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.roomSummary}>
+          <View style={[
+            styles.roomBadge,
+            { backgroundColor: room.tower === "North" ? Colors.primary : Colors.primaryLight },
+          ]}>
+            <MaterialCommunityIcons name="door" size={28} color={Colors.textLight} />
           </View>
-        )}
-      </View>
+          <Text style={styles.roomTitle} accessibilityRole="header">
+            Room {room.number}
+          </Text>
+          <Text style={styles.roomSubtitle}>
+            {room.tower} Tower {"\u00B7"} Floor {room.floor} {"\u00B7"} {room.type}
+          </Text>
+          <View style={styles.roomTagsRow}>
+            <View style={styles.roomTag}>
+              <MaterialCommunityIcons name="map-marker" size={14} color={Colors.textSecondary} />
+              <Text style={styles.roomTagText}>{corridorName} Corridor</Text>
+            </View>
+            <View style={styles.roomTag}>
+              <MaterialCommunityIcons name="elevator-passenger" size={14} color={Colors.textSecondary} />
+              <Text style={styles.roomTagText}>{room.tower} Tower Elevator</Text>
+            </View>
+          </View>
+          {room.accessibleRoom && (
+            <View style={styles.accessibleIndicator}>
+              <MaterialCommunityIcons
+                name="wheelchair-accessibility"
+                size={16}
+                color={Colors.accessible}
+              />
+              <Text style={styles.accessibleLabel}>ADA Accessible Room</Text>
+            </View>
+          )}
+        </View>
 
-      <View style={styles.choiceSection}>
-        <Text style={styles.choiceTitle}>Choose Your Route</Text>
-        <Text style={styles.choiceSubtitle}>
-          Select the route that works best for you
-        </Text>
+        <View style={styles.choiceSection}>
+          <Text style={styles.choiceTitle}>Choose Your Route</Text>
+          <Text style={styles.choiceSubtitle}>
+            Select the route that works best for you
+          </Text>
 
-        <View style={styles.cardsContainer}>
           <Pressable
             onPress={() => handleRouteSelect("accessible")}
             style={({ pressed }) => [
@@ -103,10 +119,10 @@ export default function RouteChoiceScreen() {
               styles.accessibleCard,
               pressed && styles.cardPressed,
             ]}
-            accessibilityLabel="Accessible route with elevator access, wider paths, and detailed guidance for mobility needs"
+            accessibilityLabel="Accessible route: elevator access, wider paths, handrail info, and detailed audio guidance"
             accessibilityRole="button"
           >
-            <View style={styles.cardIconRow}>
+            <View style={styles.cardTopRow}>
               <View style={[styles.cardIcon, { backgroundColor: Colors.accessibleBg }]}>
                 <MaterialCommunityIcons
                   name="wheelchair-accessibility"
@@ -121,20 +137,24 @@ export default function RouteChoiceScreen() {
             </View>
             <Text style={styles.cardTitle}>Accessible Route</Text>
             <Text style={styles.cardDescription}>
-              Elevator access, wider paths, detailed audio guidance, and mobility-friendly directions
+              Elevator access, wider paths, audio guidance, and mobility-friendly step-by-step directions
             </Text>
             <View style={styles.cardFeatures}>
               <View style={styles.featureRow}>
                 <MaterialCommunityIcons name="elevator-passenger" size={16} color={Colors.accessible} />
-                <Text style={styles.featureText}>Elevator preferred</Text>
+                <Text style={styles.featureText}>Elevator required</Text>
               </View>
               <View style={styles.featureRow}>
                 <MaterialCommunityIcons name="volume-high" size={16} color={Colors.accessible} />
-                <Text style={styles.featureText}>Voice guidance</Text>
+                <Text style={styles.featureText}>Voice guidance with accessibility notes</Text>
               </View>
               <View style={styles.featureRow}>
                 <MaterialCommunityIcons name="hand-wave" size={16} color={Colors.accessible} />
-                <Text style={styles.featureText}>Handrail info</Text>
+                <Text style={styles.featureText}>Handrail & door opener locations</Text>
+              </View>
+              <View style={styles.featureRow}>
+                <MaterialCommunityIcons name="ruler" size={16} color={Colors.accessible} />
+                <Text style={styles.featureText}>Wide corridor & distance details</Text>
               </View>
             </View>
           </Pressable>
@@ -145,10 +165,10 @@ export default function RouteChoiceScreen() {
               styles.routeCard,
               pressed && styles.cardPressed,
             ]}
-            accessibilityLabel="Standard route, shortest path to your room"
+            accessibilityLabel="Standard route: shortest path with basic turn-by-turn directions"
             accessibilityRole="button"
           >
-            <View style={styles.cardIconRow}>
+            <View style={styles.cardTopRow}>
               <View style={[styles.cardIcon, { backgroundColor: Colors.surfaceAlt }]}>
                 <MaterialCommunityIcons
                   name="walk"
@@ -159,7 +179,7 @@ export default function RouteChoiceScreen() {
             </View>
             <Text style={styles.cardTitle}>Standard Route</Text>
             <Text style={styles.cardDescription}>
-              Shortest path to your room with basic turn-by-turn directions
+              Shortest path to your room with concise turn-by-turn directions
             </Text>
             <View style={styles.cardFeatures}>
               <View style={styles.featureRow}>
@@ -168,14 +188,12 @@ export default function RouteChoiceScreen() {
               </View>
               <View style={styles.featureRow}>
                 <MaterialCommunityIcons name="stairs" size={16} color={Colors.primary} />
-                <Text style={styles.featureText}>Stairs or elevator</Text>
+                <Text style={styles.featureText}>Elevator or stairs</Text>
               </View>
             </View>
           </Pressable>
         </View>
-      </View>
-
-      <View style={{ paddingBottom: insets.bottom + webBottomInset + 16 }} />
+      </ScrollView>
     </View>
   );
 }
@@ -191,26 +209,47 @@ const styles = StyleSheet.create({
   },
   roomSummary: {
     alignItems: "center",
-    paddingVertical: 20,
-    gap: 6,
+    paddingVertical: 24,
+    paddingHorizontal: 24,
+    gap: 8,
   },
   roomBadge: {
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   roomTitle: {
     fontFamily: "Inter_700Bold",
-    fontSize: 28,
+    fontSize: 30,
     color: Colors.text,
   },
   roomSubtitle: {
     fontFamily: "Inter_400Regular",
     fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: "center",
+  },
+  roomTagsRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  roomTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: Colors.surfaceAlt,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  roomTagText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
     color: Colors.textSecondary,
   },
   accessibleIndicator: {
@@ -218,19 +257,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     backgroundColor: Colors.accessibleBg,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 16,
-    marginTop: 4,
   },
   accessibleLabel: {
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Inter_600SemiBold",
     fontSize: 13,
     color: Colors.accessible,
   },
   choiceSection: {
     paddingHorizontal: 20,
-    gap: 8,
+    gap: 10,
   },
   choiceTitle: {
     fontFamily: "Inter_700Bold",
@@ -241,10 +279,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 15,
     color: Colors.textSecondary,
-    marginBottom: 8,
-  },
-  cardsContainer: {
-    gap: 14,
+    marginBottom: 6,
   },
   routeCard: {
     backgroundColor: Colors.surface,
@@ -253,6 +288,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.border,
     gap: 10,
+    marginBottom: 4,
   },
   accessibleCard: {
     borderColor: Colors.accessible,
@@ -262,7 +298,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
   },
-  cardIconRow: {
+  cardTopRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -306,7 +342,7 @@ const styles = StyleSheet.create({
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
   },
   featureText: {
     fontFamily: "Inter_500Medium",

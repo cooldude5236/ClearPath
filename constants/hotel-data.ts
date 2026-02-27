@@ -11,7 +11,9 @@ export interface DirectionStep {
 export interface Room {
   number: string;
   floor: number;
-  wing: string;
+  roomNum: number;
+  tower: "North" | "South";
+  side: "A" | "B" | "C" | "D";
   type: string;
   accessibleRoom: boolean;
 }
@@ -22,192 +24,359 @@ export const HOTEL_INFO = {
   address: "5780 Major Blvd, Orlando, FL 32819",
 };
 
-export const ROOMS: Room[] = [
-  { number: "101", floor: 1, wing: "North", type: "King", accessibleRoom: true },
-  { number: "102", floor: 1, wing: "North", type: "Double Queen", accessibleRoom: false },
-  { number: "103", floor: 1, wing: "North", type: "King", accessibleRoom: false },
-  { number: "104", floor: 1, wing: "South", type: "King Suite", accessibleRoom: true },
-  { number: "105", floor: 1, wing: "South", type: "Double Queen", accessibleRoom: false },
-  { number: "201", floor: 2, wing: "North", type: "King", accessibleRoom: true },
-  { number: "202", floor: 2, wing: "North", type: "Double Queen", accessibleRoom: false },
-  { number: "203", floor: 2, wing: "North", type: "King", accessibleRoom: false },
-  { number: "204", floor: 2, wing: "South", type: "King Suite", accessibleRoom: true },
-  { number: "205", floor: 2, wing: "South", type: "Double Queen", accessibleRoom: false },
-  { number: "301", floor: 3, wing: "North", type: "King", accessibleRoom: true },
-  { number: "302", floor: 3, wing: "North", type: "Double Queen", accessibleRoom: false },
-  { number: "303", floor: 3, wing: "North", type: "King", accessibleRoom: false },
-  { number: "304", floor: 3, wing: "South", type: "King Suite", accessibleRoom: true },
-  { number: "305", floor: 3, wing: "South", type: "Double Queen", accessibleRoom: false },
-  { number: "401", floor: 4, wing: "North", type: "King", accessibleRoom: true },
-  { number: "402", floor: 4, wing: "North", type: "Double Queen", accessibleRoom: false },
-  { number: "403", floor: 4, wing: "North", type: "King", accessibleRoom: false },
-  { number: "404", floor: 4, wing: "South", type: "King Suite", accessibleRoom: true },
-  { number: "405", floor: 4, wing: "South", type: "Double Queen", accessibleRoom: false },
-  { number: "501", floor: 5, wing: "North", type: "King", accessibleRoom: true },
-  { number: "502", floor: 5, wing: "North", type: "Double Queen", accessibleRoom: false },
-  { number: "503", floor: 5, wing: "North", type: "King", accessibleRoom: false },
-  { number: "504", floor: 5, wing: "South", type: "King Suite", accessibleRoom: true },
-  { number: "505", floor: 5, wing: "South", type: "Double Queen", accessibleRoom: false },
-];
+const FLOORS = 17;
+const ROOMS_PER_FLOOR = 36;
+
+function getRoomSide(roomNum: number): "A" | "B" | "C" | "D" {
+  if (roomNum <= 9) return "A";
+  if (roomNum <= 18) return "B";
+  if (roomNum <= 27) return "C";
+  return "D";
+}
+
+function getRoomType(roomNum: number, accessible: boolean): string {
+  if (accessible) return "Accessible King";
+  const corners = [1, 9, 10, 18, 19, 27, 28, 36];
+  if (corners.includes(roomNum)) return "Corner Suite";
+  if (roomNum % 3 === 0) return "King";
+  return "Double Queen";
+}
+
+function isAccessibleRoom(roomNum: number): boolean {
+  return roomNum === 1 || roomNum === 19;
+}
+
+function generateRooms(): Room[] {
+  const rooms: Room[] = [];
+  const towers: Array<"North" | "South"> = ["North", "South"];
+
+  for (const tower of towers) {
+    for (let floor = 1; floor <= FLOORS; floor++) {
+      for (let roomNum = 1; roomNum <= ROOMS_PER_FLOOR; roomNum++) {
+        const accessible = isAccessibleRoom(roomNum);
+        rooms.push({
+          number: `${floor}${String(roomNum).padStart(2, "0")}`,
+          floor,
+          roomNum,
+          tower,
+          side: getRoomSide(roomNum),
+          type: getRoomType(roomNum, accessible),
+          accessibleRoom: accessible,
+        });
+      }
+    }
+  }
+  return rooms;
+}
+
+export const ROOMS: Room[] = generateRooms();
 
 export type RouteType = "accessible" | "standard";
+
+const SIDE_LABELS: Record<string, { corridor: string; turn: string; oppositeTurn: string; distance: string }> = {
+  A: { corridor: "East Corridor",  turn: "Turn left out of the elevator",      oppositeTurn: "right", distance: `${4 * 12} – ${9 * 12} ft` },
+  B: { corridor: "North Corridor", turn: "Walk to the end of the east hall and turn left", oppositeTurn: "right", distance: `${10 * 12} – ${18 * 12} ft` },
+  C: { corridor: "West Corridor",  turn: "Turn right out of the elevator",     oppositeTurn: "left",  distance: `${4 * 12} – ${9 * 12} ft` },
+  D: { corridor: "South Corridor", turn: "Walk to the end of the west hall and turn right", oppositeTurn: "left",  distance: `${10 * 12} – ${18 * 12} ft` },
+};
+
+const SOUTH_SIDE_LABELS: Record<string, { corridor: string; turn: string; oppositeTurn: string; distance: string }> = {
+  A: { corridor: "East Corridor",  turn: "Turn right out of the elevator",     oppositeTurn: "left",  distance: `${4 * 12} – ${9 * 12} ft` },
+  B: { corridor: "North Corridor", turn: "Walk to the end of the east hall and turn right", oppositeTurn: "left",  distance: `${10 * 12} – ${18 * 12} ft` },
+  C: { corridor: "West Corridor",  turn: "Turn left out of the elevator",      oppositeTurn: "right", distance: `${4 * 12} – ${9 * 12} ft` },
+  D: { corridor: "South Corridor", turn: "Walk to the end of the west hall and turn left", oppositeTurn: "right", distance: `${10 * 12} – ${18 * 12} ft` },
+};
+
+function getRoomSideOnWall(roomNum: number): number {
+  return ((roomNum - 1) % 9) + 1;
+}
+
+function getRoomSide_direction(roomNum: number): "left" | "right" {
+  const pos = getRoomSideOnWall(roomNum);
+  return pos % 2 === 1 ? "left" : "right";
+}
 
 export function getDirections(room: Room, routeType: RouteType): DirectionStep[] {
   const isAccessible = routeType === "accessible";
   const steps: DirectionStep[] = [];
   let stepId = 1;
 
+  const sideInfo = room.tower === "North"
+    ? SIDE_LABELS[room.side]
+    : SOUTH_SIDE_LABELS[room.side];
+
+  const roomSideOnWall = getRoomSideOnWall(room.roomNum);
+  const doorSide = getRoomSide_direction(room.roomNum);
+  const walkDistance = Math.round(roomSideOnWall * 14);
+  const isCorner = [1, 9, 10, 18, 19, 27, 28, 36].includes(room.roomNum);
+
   steps.push({
     id: stepId++,
-    instruction: "Enter through the main lobby doors",
-    landmark: "Main Entrance",
+    instruction: "Enter through the hotel's main entrance on Major Blvd",
+    landmark: "Hotel Entrance",
     icon: "door-open",
     distance: "Start",
-    accessibleNote: isAccessible ? "Automatic doors available on the right side" : undefined,
+    accessibleNote: isAccessible
+      ? "Automatic sliding doors are available. Push-button door opener on the right pillar."
+      : undefined,
   });
 
   steps.push({
     id: stepId++,
-    instruction: "Walk straight ahead past the front desk on your left",
-    landmark: "Front Desk & Lobby",
+    instruction: "Walk straight through the lobby toward the front desk",
+    landmark: "Hotel Lobby",
     icon: "desk",
-    distance: "50 ft",
-    accessibleNote: isAccessible ? "Wide, flat pathway with no obstacles" : undefined,
+    distance: "60 ft",
+    accessibleNote: isAccessible
+      ? "Level, wide pathway. Bell desk is on the right if you need luggage assistance."
+      : undefined,
   });
 
-  if (room.floor === 1) {
-    if (room.wing === "North") {
+  if (room.tower === "North") {
+    steps.push({
+      id: stepId++,
+      instruction: "Pass the American Grill restaurant on your right, continue toward the North Tower",
+      landmark: "American Grill / North Tower",
+      icon: "silverware-fork-knife",
+      distance: "80 ft",
+      accessibleNote: isAccessible
+        ? "The pathway widens past the restaurant. No steps or obstacles."
+        : undefined,
+    });
+
+    if (room.floor === 1) {
       steps.push({
         id: stepId++,
-        instruction: "Continue straight past the gift shop",
-        landmark: "Gift Shop",
-        icon: "shopping-outline",
-        distance: "80 ft",
+        instruction: `${sideInfo.turn} to enter the ground-floor corridor`,
+        landmark: sideInfo.corridor,
+        icon: room.side === "A" || room.side === "D" ? "arrow-left" : "arrow-right",
+        distance: "20 ft",
+        accessibleNote: isAccessible
+          ? "Corridor is 6 feet wide with smooth flooring. Handrails are on both sides."
+          : undefined,
       });
+
+      if (room.side === "B" || room.side === "D") {
+        steps.push({
+          id: stepId++,
+          instruction: `Turn at the corner and continue along the ${sideInfo.corridor}`,
+          landmark: "Corner Turn",
+          icon: "arrow-up",
+          distance: "~40 ft to corner",
+          accessibleNote: isAccessible
+            ? "Gentle corner — no sharp turns. Handrails continue around."
+            : undefined,
+        });
+      }
+
       steps.push({
         id: stepId++,
-        instruction: "Turn right at the hallway intersection",
-        landmark: "North Wing Hallway",
-        icon: "arrow-right",
-        distance: "30 ft",
-        accessibleNote: isAccessible ? "Hallway is 6 feet wide, wheelchair accessible" : undefined,
-      });
-      steps.push({
-        id: stepId++,
-        instruction: `Your room ${room.number} is on the ${parseInt(room.number) % 2 === 0 ? "right" : "left"} side`,
-        landmark: `Room ${room.number}`,
-        icon: "door",
-        distance: "40 ft",
-        accessibleNote: room.accessibleRoom ? "Accessible room with wide door and grab bars" : undefined,
-        floor: 1,
+        instruction: `Walk ${walkDistance} ft along the corridor`,
+        landmark: sideInfo.corridor,
+        icon: "arrow-up",
+        distance: `~${walkDistance} ft`,
+        accessibleNote: isAccessible
+          ? "Rooms on both sides of the corridor. Look for the room number plaques at eye and wheelchair level."
+          : undefined,
       });
     } else {
+      if (isAccessible) {
+        steps.push({
+          id: stepId++,
+          instruction: "Head to the North Tower elevator bank just past the American Grill",
+          landmark: "North Tower Elevators",
+          icon: "elevator-passenger",
+          distance: "30 ft",
+          accessibleNote:
+            "Elevators have Braille buttons, raised floor indicators, and audible floor announcements. Doors stay open 8 seconds — press and hold the Door Open button if you need more time.",
+        });
+      } else {
+        steps.push({
+          id: stepId++,
+          instruction: "Head to the North Tower elevator or stairwell",
+          landmark: "North Tower Elevators / Stairs",
+          icon: "elevator-passenger",
+          distance: "30 ft",
+        });
+      }
+
       steps.push({
         id: stepId++,
-        instruction: "Continue straight past the gift shop",
-        landmark: "Gift Shop",
-        icon: "shopping-outline",
-        distance: "80 ft",
-      });
-      steps.push({
-        id: stepId++,
-        instruction: "Turn left at the hallway intersection",
-        landmark: "South Wing Hallway",
-        icon: "arrow-left",
-        distance: "30 ft",
-        accessibleNote: isAccessible ? "Hallway is 6 feet wide, wheelchair accessible" : undefined,
-      });
-      steps.push({
-        id: stepId++,
-        instruction: `Your room ${room.number} is on the ${parseInt(room.number) % 2 === 0 ? "right" : "left"} side`,
-        landmark: `Room ${room.number}`,
-        icon: "door",
-        distance: "60 ft",
-        accessibleNote: room.accessibleRoom ? "Accessible room with wide door and grab bars" : undefined,
-        floor: 1,
-      });
-    }
-  } else {
-    if (isAccessible) {
-      steps.push({
-        id: stepId++,
-        instruction: "Turn right and head to the elevators",
-        landmark: "Elevator Bay",
-        icon: "elevator-passenger",
-        distance: "60 ft",
-        accessibleNote: "Elevators have Braille buttons and audible floor announcements",
-      });
-      steps.push({
-        id: stepId++,
-        instruction: `Take the elevator to floor ${room.floor}`,
+        instruction: `Take the elevator to Floor ${room.floor}`,
         landmark: `Floor ${room.floor}`,
         icon: "elevator-up",
         distance: "",
-        accessibleNote: "Elevator doors stay open for 8 seconds. Press and hold to extend.",
+        accessibleNote: isAccessible
+          ? `Press button ${room.floor}. An audio announcement will confirm the floor.`
+          : undefined,
+        floor: room.floor,
       });
-    } else {
+
       steps.push({
         id: stepId++,
-        instruction: "Continue past the lobby seating area",
-        landmark: "Lobby Seating",
-        icon: "sofa-outline",
-        distance: "40 ft",
+        instruction: `${sideInfo.turn} when you exit the elevator`,
+        landmark: `${sideInfo.corridor} — Floor ${room.floor}`,
+        icon: room.side === "A" || room.side === "D" ? "arrow-left" : "arrow-right",
+        distance: "10 ft",
+        accessibleNote: isAccessible
+          ? "Hallway has tactile floor strips guiding you along the corridor. Handrails on both walls."
+          : undefined,
       });
+
+      if (room.side === "B" || room.side === "D") {
+        steps.push({
+          id: stepId++,
+          instruction: `Turn at the corner to continue along the ${sideInfo.corridor}`,
+          landmark: "Corner Turn",
+          icon: "arrow-up",
+          distance: "~40 ft to corner",
+          accessibleNote: isAccessible
+            ? "Rounded corner. Handrails continue. Look for the directional sign on the wall."
+            : undefined,
+        });
+      }
+
       steps.push({
         id: stepId++,
-        instruction: `Take the elevators or stairs to floor ${room.floor}`,
-        landmark: `Floor ${room.floor}`,
-        icon: "elevator-passenger",
-        distance: "60 ft",
+        instruction: `Walk approximately ${walkDistance} ft down the corridor`,
+        landmark: sideInfo.corridor,
+        icon: "arrow-up",
+        distance: `~${walkDistance} ft`,
+        accessibleNote: isAccessible
+          ? "Room numbers are marked on plaques at both standing and wheelchair height."
+          : undefined,
       });
     }
-
-    if (room.wing === "North") {
-      steps.push({
-        id: stepId++,
-        instruction: "Exit the elevator and turn right",
-        landmark: `Floor ${room.floor} - North Wing`,
-        icon: "arrow-right",
-        distance: "10 ft",
-        accessibleNote: isAccessible ? "Textured floor guide available along the hallway" : undefined,
-      });
-      steps.push({
-        id: stepId++,
-        instruction: "Follow the hallway straight ahead",
-        landmark: "North Wing Corridor",
-        icon: "arrow-up",
-        distance: "80 ft",
-        accessibleNote: isAccessible ? "Wide corridor with handrails on both sides" : undefined,
-      });
-    } else {
-      steps.push({
-        id: stepId++,
-        instruction: "Exit the elevator and turn left",
-        landmark: `Floor ${room.floor} - South Wing`,
-        icon: "arrow-left",
-        distance: "10 ft",
-        accessibleNote: isAccessible ? "Textured floor guide available along the hallway" : undefined,
-      });
-      steps.push({
-        id: stepId++,
-        instruction: "Follow the hallway straight ahead",
-        landmark: "South Wing Corridor",
-        icon: "arrow-up",
-        distance: "100 ft",
-        accessibleNote: isAccessible ? "Wide corridor with handrails on both sides" : undefined,
-      });
-    }
-
+  } else {
     steps.push({
       id: stepId++,
-      instruction: `Your room ${room.number} is on the ${parseInt(room.number) % 2 === 0 ? "right" : "left"} side`,
-      landmark: `Room ${room.number}`,
-      icon: "door",
-      distance: "20 ft",
-      accessibleNote: room.accessibleRoom ? "Accessible room with wide door, lowered peephole, and grab bars" : undefined,
-      floor: room.floor,
+      instruction: "Pass the front desk and turn right toward the Gift Shop and South Tower",
+      landmark: "Gift Shop / South Tower",
+      icon: "shopping-outline",
+      distance: "70 ft",
+      accessibleNote: isAccessible
+        ? "Wide, level path. Gift shop is on your left."
+        : undefined,
     });
+
+    if (room.floor === 1) {
+      steps.push({
+        id: stepId++,
+        instruction: `${sideInfo.turn} to enter the ground-floor corridor`,
+        landmark: sideInfo.corridor,
+        icon: room.side === "A" || room.side === "B" ? "arrow-right" : "arrow-left",
+        distance: "20 ft",
+        accessibleNote: isAccessible
+          ? "Corridor is 6 feet wide with smooth flooring. Handrails on both sides."
+          : undefined,
+      });
+
+      if (room.side === "B" || room.side === "D") {
+        steps.push({
+          id: stepId++,
+          instruction: `Turn at the corner to continue along the ${sideInfo.corridor}`,
+          landmark: "Corner Turn",
+          icon: "arrow-up",
+          distance: "~40 ft to corner",
+          accessibleNote: isAccessible
+            ? "Gentle corner with continuous handrails."
+            : undefined,
+        });
+      }
+
+      steps.push({
+        id: stepId++,
+        instruction: `Walk ${walkDistance} ft along the corridor`,
+        landmark: sideInfo.corridor,
+        icon: "arrow-up",
+        distance: `~${walkDistance} ft`,
+        accessibleNote: isAccessible
+          ? "Room numbers on both standing and wheelchair-height plaques."
+          : undefined,
+      });
+    } else {
+      if (isAccessible) {
+        steps.push({
+          id: stepId++,
+          instruction: "Head to the South Tower elevator bank near the Executive Offices",
+          landmark: "South Tower Elevators",
+          icon: "elevator-passenger",
+          distance: "40 ft",
+          accessibleNote:
+            "Elevators have Braille buttons, raised floor indicators, and audible floor announcements. Doors stay open 8 seconds.",
+        });
+      } else {
+        steps.push({
+          id: stepId++,
+          instruction: "Head to the South Tower elevator or stairwell",
+          landmark: "South Tower Elevators / Stairs",
+          icon: "elevator-passenger",
+          distance: "40 ft",
+        });
+      }
+
+      steps.push({
+        id: stepId++,
+        instruction: `Take the elevator to Floor ${room.floor}`,
+        landmark: `Floor ${room.floor}`,
+        icon: "elevator-up",
+        distance: "",
+        accessibleNote: isAccessible
+          ? `Press button ${room.floor}. An audio announcement will confirm the floor.`
+          : undefined,
+        floor: room.floor,
+      });
+
+      steps.push({
+        id: stepId++,
+        instruction: `${sideInfo.turn} when you exit the elevator`,
+        landmark: `${sideInfo.corridor} — Floor ${room.floor}`,
+        icon: room.side === "A" || room.side === "B" ? "arrow-right" : "arrow-left",
+        distance: "10 ft",
+        accessibleNote: isAccessible
+          ? "Hallway has tactile floor strips. Handrails on both walls."
+          : undefined,
+      });
+
+      if (room.side === "B" || room.side === "D") {
+        steps.push({
+          id: stepId++,
+          instruction: `Turn at the corner to continue along the ${sideInfo.corridor}`,
+          landmark: "Corner Turn",
+          icon: "arrow-up",
+          distance: "~40 ft to corner",
+          accessibleNote: isAccessible
+            ? "Rounded corner with continuous handrails."
+            : undefined,
+        });
+      }
+
+      steps.push({
+        id: stepId++,
+        instruction: `Walk approximately ${walkDistance} ft down the corridor`,
+        landmark: sideInfo.corridor,
+        icon: "arrow-up",
+        distance: `~${walkDistance} ft`,
+        accessibleNote: isAccessible
+          ? "Room numbers on plaques at standing and wheelchair height."
+          : undefined,
+      });
+    }
   }
+
+  steps.push({
+    id: stepId++,
+    instruction: isCorner
+      ? `Room ${room.number} is the ${doorSide}-side corner room`
+      : `Room ${room.number} is on your ${doorSide}`,
+    landmark: `Room ${room.number}`,
+    icon: "door",
+    distance: "You've arrived",
+    accessibleNote: room.accessibleRoom
+      ? "Accessible room: wide entry door (36\"), lowered peephole, roll-in shower, and grab bars. Call the front desk if you need additional accommodations."
+      : undefined,
+    floor: room.floor,
+  });
 
   return steps;
 }
