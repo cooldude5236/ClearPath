@@ -14,7 +14,14 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
 import Colors from "@/constants/colors";
-import { ROOMS, getDirections, DirectionStep, RouteType } from "@/constants/hotel-data";
+import {
+  ROOMS,
+  getDirections,
+  DirectionStep,
+  RouteType,
+  GROUND_FLOOR_LOCATIONS,
+  getLocationDirections,
+} from "@/constants/hotel-data";
 
 function StepCard({
   step,
@@ -34,6 +41,7 @@ function StepCard({
       "door-open": "door-open",
       desk: "desk",
       "shopping-outline": "shopping-outline",
+      shopping: "shopping",
       "arrow-right": "arrow-right-bold",
       "arrow-left": "arrow-left-bold",
       "arrow-up": "arrow-up-bold",
@@ -42,6 +50,25 @@ function StepCard({
       "elevator-up": "elevator-up",
       "sofa-outline": "sofa-outline",
       "silverware-fork-knife": "silverware-fork-knife",
+      coffee: "coffee",
+      food: "food",
+      laptop: "laptop",
+      "bag-suitcase": "bag-suitcase",
+      car: "car",
+      "car-key": "car-key",
+      "key-variant": "key-variant",
+      briefcase: "briefcase",
+      "washing-machine": "washing-machine",
+      "controller-classic": "controller-classic",
+      pool: "pool",
+      "baby-face-outline": "baby-face-outline",
+      spa: "spa",
+      tree: "tree",
+      domain: "domain",
+      "clipboard-list": "clipboard-list",
+      "office-building": "office-building",
+      star: "star",
+      "television-play": "television-play",
     };
     return iconMap[icon] || "map-marker";
   };
@@ -142,22 +169,30 @@ function StepCard({
 
 export default function DirectionsScreen() {
   const insets = useSafeAreaInsets();
-  const { roomNumber, tower, routeType } = useLocalSearchParams<{
+  const { roomNumber, tower, routeType, locationId } = useLocalSearchParams<{
     roomNumber: string;
     tower: string;
     routeType: string;
+    locationId: string;
   }>();
   const [currentStep, setCurrentStep] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
-  const room = ROOMS.find(
-    (r) => r.number === roomNumber && r.tower === (tower as "North" | "South")
-  );
-  const steps = room
-    ? getDirections(room, (routeType as RouteType) || "accessible")
-    : [];
+  const isLocationMode = !!locationId;
+
+  const room = isLocationMode
+    ? null
+    : ROOMS.find((r) => r.number === roomNumber && r.tower === (tower as "North" | "South"));
+
+  const groundLocation = isLocationMode
+    ? GROUND_FLOOR_LOCATIONS.find((l) => l.id === locationId)
+    : null;
+
+  const steps = isLocationMode
+    ? groundLocation ? getLocationDirections(groundLocation) : []
+    : room ? getDirections(room, (routeType as RouteType) || "accessible") : [];
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const webBottomInset = Platform.OS === "web" ? 34 : 0;
@@ -218,16 +253,18 @@ export default function DirectionsScreen() {
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (voiceEnabled) {
-        Speech.speak(
-          `You have arrived at Room ${roomNumber}. Enjoy your stay at the Hilton DoubleTree!`,
-          { language: "en-US", rate: 0.85 }
-        );
+        const arrivalMsg = isLocationMode && groundLocation
+          ? `You have arrived at ${groundLocation.name}.`
+          : `You have arrived at Room ${roomNumber}. Enjoy your stay at the Hilton DoubleTree!`;
+        Speech.speak(arrivalMsg, { language: "en-US", rate: 0.85 });
       }
-      Alert.alert(
-        "You've Arrived!",
-        `Welcome to Room ${roomNumber}, ${tower} Tower.\n\nEnjoy your stay at the Hilton DoubleTree at Universal Orlando!`,
-        [{ text: "Done", onPress: () => router.dismissAll() }]
-      );
+      const alertTitle = isLocationMode && groundLocation
+        ? `You've Arrived!`
+        : `You've Arrived!`;
+      const alertBody = isLocationMode && groundLocation
+        ? `You've reached ${groundLocation.name}.\n\n${groundLocation.description}`
+        : `Welcome to Room ${roomNumber}, ${tower} Tower.\n\nEnjoy your stay at the Hilton DoubleTree at Universal Orlando!`;
+      Alert.alert(alertTitle, alertBody, [{ text: "Done", onPress: () => router.dismissAll() }]);
     }
   };
 
@@ -257,12 +294,26 @@ export default function DirectionsScreen() {
 
   const progress = steps.length ? ((currentStep + 1) / steps.length) * 100 : 0;
 
-  if (!room) {
+  if (!isLocationMode && !room) {
     return (
       <View style={[styles.container, { paddingTop: insets.top + webTopInset + 20 }]}>
         <View style={styles.errorState}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.warning} />
           <Text style={styles.errorText}>Room not found</Text>
+          <Pressable onPress={() => router.back()} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  if (isLocationMode && !groundLocation) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + webTopInset + 20 }]}>
+        <View style={styles.errorState}>
+          <Ionicons name="alert-circle-outline" size={48} color={Colors.warning} />
+          <Text style={styles.errorText}>Location not found</Text>
           <Pressable onPress={() => router.back()} style={styles.retryButton}>
             <Text style={styles.retryButtonText}>Go Back</Text>
           </Pressable>
@@ -289,11 +340,15 @@ export default function DirectionsScreen() {
             <Ionicons name="arrow-back" size={26} color={Colors.text} />
           </Pressable>
           <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>
-              Room {roomNumber} · {tower} Tower
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {isLocationMode && groundLocation
+                ? groundLocation.name
+                : `Room ${roomNumber} · ${tower} Tower`}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {routeType === "accessible" ? "Accessible" : "Standard"} Route · Floor {room.floor}
+              {isLocationMode && groundLocation
+                ? groundLocation.category
+                : `${routeType === "accessible" ? "Accessible" : "Standard"} Route · Floor ${room?.floor}`}
             </Text>
           </View>
           <Pressable
