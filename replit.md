@@ -11,6 +11,7 @@ The app is structured as a cross-platform Expo application (iOS, Android, Web) w
 - `room-select.tsx` — Searchable room list with floor/tower/accessibility info
 - `route-choice.tsx` — Choose standard or accessible route
 - `directions.tsx` — Step-by-step directions with haptics and text-to-speech
+- `arrived.tsx` — "You've Arrived" celebration screen with animated checkmark and home button
 
 ## User Preferences
 
@@ -21,7 +22,7 @@ Preferred communication style: Simple, everyday language.
 ### Frontend (Expo / React Native)
 
 - **Framework:** Expo SDK ~54, using Expo Router v6 for file-based navigation
-- **Navigation:** Stack-based navigation via expo-router. Four main screens defined in `app/` directory. Routes: `/`, `/room-select`, `/route-choice`, `/directions`
+- **Navigation:** Stack-based navigation via expo-router. Five main screens defined in `app/` directory. Routes: `/`, `/room-select`, `/route-choice`, `/directions`, `/arrived`
 - **UI:** Custom design system using `constants/colors.ts` (warm hotel palette: deep green primary, tan accent). Inter font family loaded via `@expo-google-fonts/inter`
 - **Animations:** `react-native-reanimated` for smooth shared value animations (pulse effects on welcome screen)
 - **Accessibility:** Accessible room filtering, accessibility labels on all interactive elements, accessible route option in navigation

@@ -23,6 +23,7 @@ function RootLayoutNav() {
       <Stack.Screen name="room-select" />
       <Stack.Screen name="route-choice" />
       <Stack.Screen name="directions" />
+      <Stack.Screen name="arrived" />
     </Stack>
   );
 }

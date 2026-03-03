@@ -6,7 +6,6 @@ import {
   Pressable,
   Platform,
   FlatList,
-  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -252,19 +251,26 @@ export default function DirectionsScreen() {
       scrollToStep(next);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      if (voiceEnabled) {
-        const arrivalMsg = isLocationMode && groundLocation
-          ? `You have arrived at ${groundLocation.name}.`
-          : `You have arrived at Room ${roomNumber}. Enjoy your stay at the Hilton DoubleTree!`;
-        Speech.speak(arrivalMsg, { language: "en-US", rate: 0.85 });
+      Speech.stop();
+      if (isLocationMode && groundLocation) {
+        router.push({
+          pathname: "/arrived",
+          params: {
+            locationName: groundLocation.name,
+            locationDesc: groundLocation.description,
+            voiceEnabled: voiceEnabled ? "true" : "false",
+          },
+        });
+      } else {
+        router.push({
+          pathname: "/arrived",
+          params: {
+            roomNumber: roomNumber ?? "",
+            tower: tower ?? "",
+            voiceEnabled: voiceEnabled ? "true" : "false",
+          },
+        });
       }
-      const alertTitle = isLocationMode && groundLocation
-        ? `You've Arrived!`
-        : `You've Arrived!`;
-      const alertBody = isLocationMode && groundLocation
-        ? `You've reached ${groundLocation.name}.\n\n${groundLocation.description}`
-        : `Welcome to Room ${roomNumber}, ${tower} Tower.\n\nEnjoy your stay at the Hilton DoubleTree at Universal Orlando!`;
-      Alert.alert(alertTitle, alertBody, [{ text: "Done", onPress: () => router.dismissAll() }]);
     }
   };
 
