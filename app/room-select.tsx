@@ -8,6 +8,8 @@ import {
   FlatList,
   TextInput,
   SectionList,
+  Alert,
+  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,12 +24,12 @@ import {
   LocationCategory,
 } from "@/constants/hotel-data";
 
-type TabType = "room" | "ground";
+type TabType = "keypad" | "room" | "ground";
 
 const CATEGORY_ICONS: Record<LocationCategory, keyof typeof MaterialCommunityIcons.glyphMap> = {
   "Hotel Services": "concierge",
   "Dining & Drinks": "silverware-fork-knife",
-  "Shopping": "shopping",
+  Shopping: "shopping",
   "Recreation & Wellness": "pool",
   "Convention Center": "domain",
   "Meeting Rooms": "television-play",
@@ -36,35 +38,34 @@ const CATEGORY_ICONS: Record<LocationCategory, keyof typeof MaterialCommunityIco
 const CATEGORY_COLORS: Record<LocationCategory, string> = {
   "Hotel Services": "#1B4332",
   "Dining & Drinks": "#C25B1A",
-  "Shopping": "#7B2D8B",
+  Shopping: "#7B2D8B",
   "Recreation & Wellness": "#0077B6",
   "Convention Center": "#B5451B",
   "Meeting Rooms": "#555",
 };
 
+const KEYPAD_KEYS = [
+  ["1", "2", "3"],
+  ["4", "5", "6"],
+  ["7", "8", "9"],
+  ["C", "0", "⌫"],
+];
+
 function RoomCard({ room, onSelect }: { room: Room; onSelect: (r: Room) => void }) {
   return (
     <Pressable
       onPress={() => onSelect(room)}
-      style={({ pressed }) => [
-        styles.roomCard,
-        pressed && styles.cardPressed,
-      ]}
+      style={({ pressed }) => [styles.roomCard, pressed && styles.cardPressed]}
       accessibilityLabel={`Room ${room.number}, Floor ${room.floor}, ${room.tower} Tower, ${room.type}${room.accessibleRoom ? ", Accessible room" : ""}`}
       accessibilityRole="button"
     >
       <View style={styles.cardLeft}>
-        <View style={[
-          styles.roomBadge,
-          { backgroundColor: room.tower === "North" ? Colors.primary : Colors.primaryLight },
-        ]}>
+        <View style={[styles.roomBadge, { backgroundColor: room.tower === "North" ? Colors.primary : Colors.primaryLight }]}>
           <Text style={styles.roomBadgeText}>{room.number}</Text>
         </View>
         <View style={styles.cardInfo}>
           <Text style={styles.cardTitle}>{room.type}</Text>
-          <Text style={styles.cardDetail}>
-            Floor {room.floor} {"\u00B7"} {room.tower} Tower
-          </Text>
+          <Text style={styles.cardDetail}>Floor {room.floor} {"\u00B7"} {room.tower} Tower</Text>
         </View>
       </View>
       <View style={styles.cardRight}>
@@ -79,16 +80,9 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: (r: Room) => void 
   );
 }
 
-function LocationCard({
-  location,
-  onSelect,
-}: {
-  location: GroundFloorLocation;
-  onSelect: (l: GroundFloorLocation) => void;
-}) {
+function LocationCard({ location, onSelect }: { location: GroundFloorLocation; onSelect: (l: GroundFloorLocation) => void }) {
   const color = CATEGORY_COLORS[location.category];
   const iconName = location.icon as keyof typeof MaterialCommunityIcons.glyphMap;
-
   return (
     <Pressable
       onPress={() => onSelect(location)}
@@ -102,9 +96,7 @@ function LocationCard({
       <View style={styles.locationInfo}>
         <Text style={styles.locationName}>{location.name}</Text>
         <Text style={styles.locationDesc} numberOfLines={1}>{location.description}</Text>
-        {location.hours && (
-          <Text style={styles.locationHours}>{location.hours}</Text>
-        )}
+        {location.hours && <Text style={styles.locationHours}>{location.hours}</Text>}
       </View>
       <View style={styles.locationRight}>
         {location.accessible && (
@@ -118,11 +110,14 @@ function LocationCard({
 
 export default function RoomSelectScreen() {
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<TabType>("room");
+  const [tab, setTab] = useState<TabType>("keypad");
   const [search, setSearch] = useState("");
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
   const [selectedTower, setSelectedTower] = useState<"North" | "South" | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<LocationCategory | null>(null);
+
+  const [keypadValue, setKeypadValue] = useState("");
+  const [keypadTower, setKeypadTower] = useState<"North" | "South">("North");
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const webBottomInset = Platform.OS === "web" ? 34 : 0;
@@ -146,9 +141,7 @@ export default function RoomSelectScreen() {
     if (selectedCategory) locs = locs.filter((l) => l.category === selectedCategory);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      locs = locs.filter(
-        (l) => l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q)
-      );
+      locs = locs.filter((l) => l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q));
     }
     const grouped: Record<string, GroundFloorLocation[]> = {};
     for (const loc of locs) {
@@ -157,6 +150,42 @@ export default function RoomSelectScreen() {
     }
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
   }, [selectedCategory, search]);
+
+  const keypadMatch = useMemo(() => {
+    if (!keypadValue) return null;
+    return ROOMS.find((r) => r.number === keypadValue && r.tower === keypadTower) ?? null;
+  }, [keypadValue, keypadTower]);
+
+  const handleKeyPress = (key: string) => {
+    if (key === "C") {
+      setKeypadValue("");
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } else if (key === "⌫") {
+      setKeypadValue((v) => v.slice(0, -1));
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } else {
+      if (keypadValue.length < 4) {
+        setKeypadValue((v) => v + key);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+    }
+  };
+
+  const handleKeypadGo = () => {
+    if (!keypadValue) return;
+    const room = ROOMS.find((r) => r.number === keypadValue && r.tower === keypadTower);
+    if (room) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.push({ pathname: "/route-choice", params: { roomNumber: room.number, tower: room.tower } });
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert(
+        "Room Not Found",
+        `Room ${keypadValue} was not found in the ${keypadTower} Tower. Please check your room number and tower, then try again.`,
+        [{ text: "OK" }]
+      );
+    }
+  };
 
   const handleSelectRoom = (room: Room) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -191,59 +220,159 @@ export default function RoomSelectScreen() {
         </View>
 
         <View style={styles.tabRow}>
-          <Pressable
-            onPress={() => switchTab("room")}
-            style={[styles.tabChip, tab === "room" && styles.tabChipActive]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: tab === "room" }}
-          >
-            <MaterialCommunityIcons
-              name="door"
-              size={16}
-              color={tab === "room" ? Colors.textLight : Colors.textSecondary}
-            />
-            <Text style={[styles.tabChipText, tab === "room" && styles.tabChipTextActive]}>
-              My Room
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => switchTab("ground")}
-            style={[styles.tabChip, tab === "ground" && styles.tabChipActive]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: tab === "ground" }}
-          >
-            <MaterialCommunityIcons
-              name="map-marker"
-              size={16}
-              color={tab === "ground" ? Colors.textLight : Colors.textSecondary}
-            />
-            <Text style={[styles.tabChipText, tab === "ground" && styles.tabChipTextActive]}>
-              Ground Floor
-            </Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.searchBox}>
-          <Ionicons name="search" size={20} color={Colors.textSecondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={tab === "room" ? "Room number (e.g. 1205)" : "Search facilities…"}
-            placeholderTextColor={Colors.textSecondary}
-            value={search}
-            onChangeText={setSearch}
-            keyboardType={tab === "room" ? "number-pad" : "default"}
-            accessibilityLabel={tab === "room" ? "Search by room number" : "Search ground floor facilities"}
-            returnKeyType="search"
-          />
-          {search.length > 0 && (
-            <Pressable onPress={() => setSearch("")} hitSlop={8}>
-              <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+          {([
+            { key: "keypad" as TabType, label: "Keypad", icon: "dialpad" as keyof typeof MaterialCommunityIcons.glyphMap },
+            { key: "room" as TabType, label: "Browse", icon: "format-list-bulleted" as keyof typeof MaterialCommunityIcons.glyphMap },
+            { key: "ground" as TabType, label: "Ground", icon: "map-marker" as keyof typeof MaterialCommunityIcons.glyphMap },
+          ]).map((t) => (
+            <Pressable
+              key={t.key}
+              onPress={() => switchTab(t.key)}
+              style={[styles.tabChip, tab === t.key && styles.tabChipActive]}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: tab === t.key }}
+            >
+              <MaterialCommunityIcons
+                name={t.icon}
+                size={16}
+                color={tab === t.key ? Colors.textLight : Colors.textSecondary}
+              />
+              <Text style={[styles.tabChipText, tab === t.key && styles.tabChipTextActive]}>
+                {t.label}
+              </Text>
             </Pressable>
-          )}
+          ))}
         </View>
+      </View>
 
-        {tab === "room" && (
-          <>
+      {tab === "keypad" && (
+        <ScrollView
+          contentContainerStyle={[styles.keypadContainer, { paddingBottom: insets.bottom + webBottomInset + 20 }]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <Text style={styles.keypadPrompt}>Enter your room number</Text>
+
+          <View style={styles.displayBox}>
+            <Text
+              style={[styles.displayText, !keypadValue && styles.displayPlaceholder]}
+              accessibilityLabel={keypadValue ? `Room number ${keypadValue}` : "No room number entered"}
+              accessibilityRole="text"
+            >
+              {keypadValue || "_ _ _ _"}
+            </Text>
+            {keypadMatch && (
+              <View style={styles.displayMatchRow}>
+                <MaterialCommunityIcons name="check-circle" size={16} color={Colors.success} />
+                <Text style={styles.displayMatchText}>
+                  {keypadMatch.type} · Floor {keypadMatch.floor}
+                </Text>
+              </View>
+            )}
+            {keypadValue.length > 0 && !keypadMatch && (
+              <View style={styles.displayMatchRow}>
+                <MaterialCommunityIcons name="alert-circle-outline" size={16} color={Colors.warning} />
+                <Text style={styles.displayNoMatch}>
+                  {keypadValue.length < 3 ? "Keep typing…" : `Not found in ${keypadTower} Tower`}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.towerSelector}>
+            {(["North", "South"] as const).map((t) => (
+              <Pressable
+                key={t}
+                onPress={() => { setKeypadTower(t); Haptics.selectionAsync(); }}
+                style={[styles.towerBtn, keypadTower === t && styles.towerBtnActive]}
+                accessibilityLabel={`${t} Tower`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: keypadTower === t }}
+              >
+                <MaterialCommunityIcons
+                  name="office-building"
+                  size={16}
+                  color={keypadTower === t ? Colors.textLight : Colors.textSecondary}
+                />
+                <Text style={[styles.towerBtnText, keypadTower === t && styles.towerBtnTextActive]}>
+                  {t} Tower
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+
+          <View style={styles.keypadGrid}>
+            {KEYPAD_KEYS.map((row, ri) => (
+              <View key={ri} style={styles.keypadRow}>
+                {row.map((key) => {
+                  const isSpecial = key === "C" || key === "⌫";
+                  return (
+                    <Pressable
+                      key={key}
+                      onPress={() => handleKeyPress(key)}
+                      style={({ pressed }) => [
+                        styles.keypadKey,
+                        isSpecial && styles.keypadKeySpecial,
+                        pressed && styles.keypadKeyPressed,
+                      ]}
+                      accessibilityLabel={
+                        key === "⌫" ? "Delete" : key === "C" ? "Clear all" : `Number ${key}`
+                      }
+                      accessibilityRole="button"
+                    >
+                      {key === "⌫" ? (
+                        <Ionicons name="backspace-outline" size={26} color={Colors.warning} />
+                      ) : (
+                        <Text style={[styles.keypadKeyText, isSpecial && styles.keypadKeyTextSpecial]}>
+                          {key}
+                        </Text>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+
+          <Pressable
+            onPress={handleKeypadGo}
+            disabled={!keypadValue}
+            style={({ pressed }) => [
+              styles.goButton,
+              !keypadValue && styles.goButtonDisabled,
+              pressed && keypadValue ? { opacity: 0.9, transform: [{ scale: 0.98 }] } : undefined,
+            ]}
+            accessibilityLabel={`Find room ${keypadValue || ""}`}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !keypadValue }}
+          >
+            <MaterialCommunityIcons name="magnify" size={22} color={Colors.textLight} />
+            <Text style={styles.goButtonText}>Find My Room</Text>
+          </Pressable>
+        </ScrollView>
+      )}
+
+      {tab === "room" && (
+        <>
+          <View style={styles.filtersArea}>
+            <View style={styles.searchBox}>
+              <Ionicons name="search" size={20} color={Colors.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Room number (e.g. 1205)"
+                placeholderTextColor={Colors.textSecondary}
+                value={search}
+                onChangeText={setSearch}
+                keyboardType="number-pad"
+                accessibilityLabel="Search by room number"
+                returnKeyType="search"
+              />
+              {search.length > 0 && (
+                <Pressable onPress={() => setSearch("")} hitSlop={8}>
+                  <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+                </Pressable>
+              )}
+            </View>
             <View style={styles.filterRow}>
               {(["North", "South"] as const).map((t) => (
                 <Pressable
@@ -254,9 +383,7 @@ export default function RoomSelectScreen() {
                   accessibilityState={{ selected: selectedTower === t }}
                 >
                   <MaterialCommunityIcons name="office-building" size={13} color={selectedTower === t ? Colors.textLight : Colors.textSecondary} />
-                  <Text style={[styles.filterChipText, selectedTower === t && styles.filterChipTextActive]}>
-                    {t} Tower
-                  </Text>
+                  <Text style={[styles.filterChipText, selectedTower === t && styles.filterChipTextActive]}>{t} Tower</Text>
                 </Pressable>
               ))}
             </View>
@@ -282,84 +409,97 @@ export default function RoomSelectScreen() {
               ))}
             </View>
             <Text style={styles.resultCount}>{filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""}</Text>
-          </>
-        )}
-
-        {tab === "ground" && (
-          <View style={[styles.filterRow, { flexWrap: "wrap" }]}>
-            <Pressable
-              onPress={() => { setSelectedCategory(null); Haptics.selectionAsync(); }}
-              style={[styles.filterChip, selectedCategory === null && styles.filterChipActive]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: selectedCategory === null }}
-            >
-              <Text style={[styles.filterChipText, selectedCategory === null && styles.filterChipTextActive]}>All</Text>
-            </Pressable>
-            {categories.map((cat) => (
-              <Pressable
-                key={cat}
-                onPress={() => { setSelectedCategory(selectedCategory === cat ? null : cat); Haptics.selectionAsync(); }}
-                style={[styles.filterChip, selectedCategory === cat && styles.filterChipActive]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: selectedCategory === cat }}
-              >
-                <MaterialCommunityIcons
-                  name={CATEGORY_ICONS[cat]}
-                  size={13}
-                  color={selectedCategory === cat ? Colors.textLight : Colors.textSecondary}
-                />
-                <Text style={[styles.filterChipText, selectedCategory === cat && styles.filterChipTextActive]}>
-                  {cat}
-                </Text>
-              </Pressable>
-            ))}
           </View>
-        )}
-      </View>
+          <FlatList
+            data={filteredRooms}
+            keyExtractor={(item) => `${item.tower}-${item.number}`}
+            renderItem={({ item }) => <RoomCard room={item} onSelect={handleSelectRoom} />}
+            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + webBottomInset + 16 }]}
+            scrollEnabled={!!filteredRooms.length}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Ionicons name="bed-outline" size={48} color={Colors.textSecondary} />
+                <Text style={styles.emptyText}>No rooms found</Text>
+                <Text style={styles.emptySubtext}>Try a different room number, floor, or tower</Text>
+              </View>
+            }
+          />
+        </>
+      )}
 
-      {tab === "room" ? (
-        <FlatList
-          data={filteredRooms}
-          keyExtractor={(item) => `${item.tower}-${item.number}`}
-          renderItem={({ item }) => <RoomCard room={item} onSelect={handleSelectRoom} />}
-          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + webBottomInset + 16 }]}
-          scrollEnabled={!!filteredRooms.length}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Ionicons name="bed-outline" size={48} color={Colors.textSecondary} />
-              <Text style={styles.emptyText}>No rooms found</Text>
-              <Text style={styles.emptySubtext}>Try a different room number, floor, or tower</Text>
-            </View>
-          }
-        />
-      ) : (
-        <SectionList
-          sections={locationSections}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <LocationCard location={item} onSelect={handleSelectLocation} />}
-          renderSectionHeader={({ section: { title } }) => (
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons
-                name={CATEGORY_ICONS[title as LocationCategory]}
-                size={16}
-                color={CATEGORY_COLORS[title as LocationCategory]}
+      {tab === "ground" && (
+        <>
+          <View style={styles.filtersArea}>
+            <View style={styles.searchBox}>
+              <Ionicons name="search" size={20} color={Colors.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search facilities…"
+                placeholderTextColor={Colors.textSecondary}
+                value={search}
+                onChangeText={setSearch}
+                accessibilityLabel="Search ground floor facilities"
+                returnKeyType="search"
               />
-              <Text style={[styles.sectionHeaderText, { color: CATEGORY_COLORS[title as LocationCategory] }]}>
-                {title}
-              </Text>
+              {search.length > 0 && (
+                <Pressable onPress={() => setSearch("")} hitSlop={8}>
+                  <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+                </Pressable>
+              )}
             </View>
-          )}
-          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + webBottomInset + 16 }]}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <MaterialCommunityIcons name="map-search" size={48} color={Colors.textSecondary} />
-              <Text style={styles.emptyText}>Nothing found</Text>
-              <Text style={styles.emptySubtext}>Try a different search term or category</Text>
+            <View style={[styles.filterRow, { flexWrap: "wrap" }]}>
+              <Pressable
+                onPress={() => { setSelectedCategory(null); Haptics.selectionAsync(); }}
+                style={[styles.filterChip, selectedCategory === null && styles.filterChipActive]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedCategory === null }}
+              >
+                <Text style={[styles.filterChipText, selectedCategory === null && styles.filterChipTextActive]}>All</Text>
+              </Pressable>
+              {categories.map((cat) => (
+                <Pressable
+                  key={cat}
+                  onPress={() => { setSelectedCategory(selectedCategory === cat ? null : cat); Haptics.selectionAsync(); }}
+                  style={[styles.filterChip, selectedCategory === cat && styles.filterChipActive]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: selectedCategory === cat }}
+                >
+                  <MaterialCommunityIcons
+                    name={CATEGORY_ICONS[cat]}
+                    size={13}
+                    color={selectedCategory === cat ? Colors.textLight : Colors.textSecondary}
+                  />
+                  <Text style={[styles.filterChipText, selectedCategory === cat && styles.filterChipTextActive]}>{cat}</Text>
+                </Pressable>
+              ))}
             </View>
-          }
-        />
+          </View>
+          <SectionList
+            sections={locationSections}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <LocationCard location={item} onSelect={handleSelectLocation} />}
+            renderSectionHeader={({ section: { title } }) => (
+              <View style={styles.sectionHeader}>
+                <MaterialCommunityIcons
+                  name={CATEGORY_ICONS[title as LocationCategory]}
+                  size={16}
+                  color={CATEGORY_COLORS[title as LocationCategory]}
+                />
+                <Text style={[styles.sectionHeaderText, { color: CATEGORY_COLORS[title as LocationCategory] }]}>{title}</Text>
+              </View>
+            )}
+            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + webBottomInset + 16 }]}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons name="map-search" size={48} color={Colors.textSecondary} />
+                <Text style={styles.emptyText}>Nothing found</Text>
+                <Text style={styles.emptySubtext}>Try a different search term or category</Text>
+              </View>
+            }
+          />
+        </>
       )}
     </View>
   );
@@ -381,29 +521,29 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   headerTitle: { fontFamily: "Inter_700Bold", fontSize: 20, color: Colors.text },
-  tabRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-  },
+  tabRow: { flexDirection: "row", gap: 8, marginBottom: 4 },
   tabChip: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    paddingVertical: 11,
-    borderRadius: 14,
+    gap: 5,
+    paddingVertical: 10,
+    borderRadius: 12,
     backgroundColor: Colors.surfaceAlt,
     borderWidth: 1.5,
     borderColor: "transparent",
   },
-  tabChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  tabChipText: { fontFamily: "Inter_600SemiBold", fontSize: 14, color: Colors.textSecondary },
+  tabChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  tabChipText: { fontFamily: "Inter_600SemiBold", fontSize: 13, color: Colors.textSecondary },
   tabChipTextActive: { color: Colors.textLight },
+  filtersArea: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -506,4 +646,144 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 60, gap: 8 },
   emptyText: { fontFamily: "Inter_600SemiBold", fontSize: 18, color: Colors.text },
   emptySubtext: { fontFamily: "Inter_400Regular", fontSize: 14, color: Colors.textSecondary, textAlign: "center" },
+
+  keypadContainer: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 16,
+  },
+  keypadPrompt: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginBottom: 14,
+  },
+  displayBox: {
+    width: "100%",
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    paddingVertical: 22,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    marginBottom: 16,
+    minHeight: 90,
+    justifyContent: "center",
+  },
+  displayText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 44,
+    color: Colors.text,
+    letterSpacing: 12,
+    textAlign: "center",
+  },
+  displayPlaceholder: {
+    color: Colors.border,
+    letterSpacing: 16,
+  },
+  displayMatchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 8,
+  },
+  displayMatchText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    color: Colors.success,
+  },
+  displayNoMatch: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  towerSelector: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+    marginBottom: 18,
+  },
+  towerBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: Colors.surfaceAlt,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  towerBtnActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  towerBtnText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 15,
+    color: Colors.textSecondary,
+  },
+  towerBtnTextActive: {
+    color: Colors.textLight,
+  },
+  keypadGrid: {
+    width: "100%",
+    gap: 10,
+    marginBottom: 18,
+  },
+  keypadRow: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+  },
+  keypadKey: {
+    flex: 1,
+    aspectRatio: 1.6,
+    maxHeight: 64,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  keypadKeySpecial: {
+    backgroundColor: Colors.surfaceAlt,
+    borderColor: Colors.surfaceAlt,
+  },
+  keypadKeyPressed: {
+    backgroundColor: Colors.primaryLight,
+    borderColor: Colors.primaryLight,
+  },
+  keypadKeyText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 26,
+    color: Colors.text,
+  },
+  keypadKeyTextSpecial: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+  },
+  goButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    width: "100%",
+    paddingVertical: 18,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    minHeight: 60,
+  },
+  goButtonDisabled: {
+    backgroundColor: Colors.border,
+    opacity: 0.6,
+  },
+  goButtonText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    color: Colors.textLight,
+  },
 });
