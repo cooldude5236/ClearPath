@@ -50,8 +50,9 @@ export default function SettingsScreen() {
         <Pressable
           onPress={handleBack}
           style={styles.backButton}
-          accessibilityLabel="Go back"
+          accessibilityLabel="Go back to home screen"
           accessibilityRole="button"
+          accessibilityHint="Double tap to return to the welcome screen"
         >
           <Ionicons name="arrow-back" size={24} color={Colors.textLight} />
         </Pressable>
@@ -73,7 +74,7 @@ export default function SettingsScreen() {
             <Ionicons name="information-circle" size={20} color={Colors.primary} />
             <Text style={styles.sectionTitle}>About</Text>
           </View>
-          <View style={styles.card}>
+          <View style={styles.card} accessible={true} accessibilityRole="text" accessibilityLabel="Team 2-1016-1, TSA Software Development. Revision 8. Build Version 21016.033.08.01">
             <Text style={styles.aboutLine}>Team 2-1016-1</Text>
             <Text style={styles.aboutLine}>TSA Software Development</Text>
             <View style={styles.aboutDivider} />

@@ -59,8 +59,9 @@ export default function RouteChoiceScreen() {
       <View style={[styles.topSection, { paddingTop: insets.top + webTopInset + 12 }]}>
         <Pressable
           onPress={handleBack}
-          accessibilityLabel="Go back"
+          accessibilityLabel="Go back to room selection"
           accessibilityRole="button"
+          accessibilityHint="Double tap to return to room selection"
           hitSlop={12}
         >
           <Ionicons name="arrow-back" size={26} color={Colors.text} />
@@ -71,7 +72,7 @@ export default function RouteChoiceScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + webBottomInset + 16 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.roomSummary}>
+        <View style={styles.roomSummary} accessible={true} accessibilityRole="summary" accessibilityLabel={`Room ${room.number}, ${room.tower} Tower, Floor ${room.floor}, ${room.type}, ${corridorName} Corridor${room.accessibleRoom ? ", ADA Accessible Room" : ""}`}>
           <View style={[
             styles.roomBadge,
             { backgroundColor: room.tower === "North" ? Colors.primary : Colors.primaryLight },
@@ -119,8 +120,9 @@ export default function RouteChoiceScreen() {
               styles.accessibleCard,
               pressed && styles.cardPressed,
             ]}
-            accessibilityLabel="Accessible route: elevator access, wider paths, handrail info, and detailed audio guidance"
+            accessibilityLabel="Accessible Route. Elevator access, wider paths, handrail info, and detailed audio guidance. Recommended."
             accessibilityRole="button"
+            accessibilityHint="Double tap to start accessible directions to your room"
           >
             <View style={styles.cardTopRow}>
               <View style={[styles.cardIcon, { backgroundColor: Colors.accessibleBg }]}>
@@ -165,8 +167,9 @@ export default function RouteChoiceScreen() {
               styles.routeCard,
               pressed && styles.cardPressed,
             ]}
-            accessibilityLabel="Standard route: shortest path with basic turn-by-turn directions"
+            accessibilityLabel="Standard Route. Shortest path with basic turn-by-turn directions."
             accessibilityRole="button"
+            accessibilityHint="Double tap to start standard directions to your room"
           >
             <View style={styles.cardTopRow}>
               <View style={[styles.cardIcon, { backgroundColor: Colors.surfaceAlt }]}>

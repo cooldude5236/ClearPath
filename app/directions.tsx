@@ -345,8 +345,9 @@ export default function DirectionsScreen() {
         <View style={styles.headerTop}>
           <Pressable
             onPress={handleBack}
-            accessibilityLabel="Go back"
+            accessibilityLabel="Go back to route selection"
             accessibilityRole="button"
+            accessibilityHint="Double tap to return to previous screen"
             hitSlop={12}
           >
             <Ionicons name="arrow-back" size={26} color={Colors.text} />
@@ -365,8 +366,9 @@ export default function DirectionsScreen() {
           </View>
           <Pressable
             onPress={toggleVoice}
-            accessibilityLabel={voiceEnabled ? "Turn off voice guidance" : "Turn on voice guidance"}
+            accessibilityLabel={voiceEnabled ? "Voice guidance is on" : "Voice guidance is off"}
             accessibilityRole="button"
+            accessibilityHint={voiceEnabled ? "Double tap to turn off voice guidance" : "Double tap to turn on voice guidance"}
             style={[
               styles.voiceButton,
               voiceEnabled && styles.voiceButtonActive,
@@ -384,7 +386,7 @@ export default function DirectionsScreen() {
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
-          <Text style={styles.progressText}>
+          <Text style={styles.progressText} accessibilityRole="text" accessibilityLiveRegion="polite">
             Step {currentStep + 1} of {steps.length}
           </Text>
         </View>
@@ -437,9 +439,10 @@ export default function DirectionsScreen() {
               currentStep === 0 && styles.navButtonDisabled,
               pressed && currentStep > 0 && { opacity: 0.8 },
             ]}
-            accessibilityLabel="Previous step"
+            accessibilityLabel={currentStep === 0 ? "Previous step, at first step" : `Previous step, go to step ${currentStep}`}
             accessibilityRole="button"
             accessibilityState={{ disabled: currentStep === 0 }}
+            accessibilityHint="Double tap to go to the previous direction step"
           >
             <Ionicons
               name="arrow-back"
@@ -465,9 +468,12 @@ export default function DirectionsScreen() {
               pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
             ]}
             accessibilityLabel={
-              currentStep === steps.length - 1 ? "You have arrived" : "Next step"
+              currentStep === steps.length - 1 ? "Arrived at destination" : `Next step, go to step ${currentStep + 2}`
             }
             accessibilityRole="button"
+            accessibilityHint={
+              currentStep === steps.length - 1 ? "Double tap to confirm you have arrived" : "Double tap to go to the next direction step"
+            }
           >
             <Text style={styles.nextButtonText}>
               {currentStep === steps.length - 1 ? "Arrived" : "Next"}

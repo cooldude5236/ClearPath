@@ -98,8 +98,18 @@ export default function ArrivedScreen() {
       >
         <View style={styles.spacer} />
 
-        <View style={styles.centerSection}>
-          <Animated.View style={[styles.checkCircle, checkStyle]}>
+        <View
+          style={styles.centerSection}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel={
+            isLocation
+              ? `You've arrived at ${locationName}. ${locationDesc || ""}`
+              : `You've arrived at Room ${roomNumber}, ${tower} Tower. Welcome to ${HOTEL_INFO.name}. Enjoy your stay!`
+          }
+          accessibilityLiveRegion="assertive"
+        >
+          <Animated.View style={[styles.checkCircle, checkStyle]} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
             <Ionicons name="checkmark" size={56} color={Colors.primary} />
           </Animated.View>
 
@@ -121,7 +131,7 @@ export default function ArrivedScreen() {
                 <Text style={styles.arrivedSubtext}>
                   {tower} Tower
                 </Text>
-                <View style={styles.welcomeBox}>
+                <View style={styles.welcomeBox} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
                   <MaterialCommunityIcons name="home-city" size={20} color={Colors.accentLight} />
                   <Text style={styles.welcomeText}>
                     Welcome to {HOTEL_INFO.name}
@@ -142,8 +152,9 @@ export default function ArrivedScreen() {
               styles.homeButton,
               pressed && styles.homeButtonPressed,
             ]}
-            accessibilityLabel="Return to home screen"
+            accessibilityLabel="Back to Home"
             accessibilityRole="button"
+            accessibilityHint="Double tap to return to the welcome screen"
           >
             <Ionicons name="home" size={22} color={Colors.primary} />
             <Text style={styles.homeButtonText}>Back to Home</Text>

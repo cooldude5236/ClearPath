@@ -58,6 +58,7 @@ function RoomCard({ room, onSelect }: { room: Room; onSelect: (r: Room) => void 
       style={({ pressed }) => [styles.roomCard, pressed && styles.cardPressed]}
       accessibilityLabel={`Room ${room.number}, Floor ${room.floor}, ${room.tower} Tower, ${room.type}${room.accessibleRoom ? ", Accessible room" : ""}`}
       accessibilityRole="button"
+      accessibilityHint="Double tap to choose a route to this room"
     >
       <View style={styles.cardLeft}>
         <View style={[styles.roomBadge, { backgroundColor: room.tower === "North" ? Colors.primary : Colors.primaryLight }]}>
@@ -89,6 +90,7 @@ function LocationCard({ location, onSelect }: { location: GroundFloorLocation; o
       style={({ pressed }) => [styles.locationCard, pressed && styles.cardPressed]}
       accessibilityLabel={`${location.name}. ${location.description}${location.hours ? `. Hours: ${location.hours}` : ""}${location.accessible ? ". Wheelchair accessible." : ""}`}
       accessibilityRole="button"
+      accessibilityHint="Double tap to get directions to this location"
     >
       <View style={[styles.locationIcon, { backgroundColor: color + "18" }]}>
         <MaterialCommunityIcons name={iconName} size={24} color={color} />
@@ -212,7 +214,7 @@ export default function RoomSelectScreen() {
     <View style={styles.container}>
       <View style={[styles.headerArea, { paddingTop: insets.top + webTopInset + 12 }]}>
         <View style={styles.headerRow}>
-          <Pressable onPress={handleBack} accessibilityLabel="Go back" accessibilityRole="button" hitSlop={12}>
+          <Pressable onPress={handleBack} accessibilityLabel="Go back to home screen" accessibilityRole="button" accessibilityHint="Double tap to return to the welcome screen" hitSlop={12}>
             <Ionicons name="arrow-back" size={26} color={Colors.text} />
           </Pressable>
           <Text style={styles.headerTitle} accessibilityRole="header">Where to?</Text>
@@ -230,7 +232,9 @@ export default function RoomSelectScreen() {
               onPress={() => switchTab(t.key)}
               style={[styles.tabChip, tab === t.key && styles.tabChipActive]}
               accessibilityRole="tab"
+              accessibilityLabel={`${t.label} tab`}
               accessibilityState={{ selected: tab === t.key }}
+              accessibilityHint={`Double tap to switch to ${t.label} view`}
             >
               <MaterialCommunityIcons
                 name={t.icon}
@@ -262,7 +266,7 @@ export default function RoomSelectScreen() {
               {keypadValue || "_ _ _ _"}
             </Text>
             {keypadMatch && (
-              <View style={styles.displayMatchRow}>
+              <View style={styles.displayMatchRow} accessible={true} accessibilityRole="text" accessibilityLabel={`Room found: ${keypadMatch.type}, Floor ${keypadMatch.floor}`} accessibilityLiveRegion="polite">
                 <MaterialCommunityIcons name="check-circle" size={16} color={Colors.success} />
                 <Text style={styles.displayMatchText}>
                   {keypadMatch.type} · Floor {keypadMatch.floor}
@@ -270,7 +274,7 @@ export default function RoomSelectScreen() {
               </View>
             )}
             {keypadValue.length > 0 && !keypadMatch && (
-              <View style={styles.displayMatchRow}>
+              <View style={styles.displayMatchRow} accessible={true} accessibilityRole="text" accessibilityLabel={keypadValue.length < 3 ? "Keep typing" : `Room not found in ${keypadTower} Tower`} accessibilityLiveRegion="polite">
                 <MaterialCommunityIcons name="alert-circle-outline" size={16} color={Colors.warning} />
                 <Text style={styles.displayNoMatch}>
                   {keypadValue.length < 3 ? "Keep typing…" : `Not found in ${keypadTower} Tower`}
@@ -286,8 +290,9 @@ export default function RoomSelectScreen() {
                 onPress={() => { setKeypadTower(t); Haptics.selectionAsync(); }}
                 style={[styles.towerBtn, keypadTower === t && styles.towerBtnActive]}
                 accessibilityLabel={`${t} Tower`}
-                accessibilityRole="button"
+                accessibilityRole="radio"
                 accessibilityState={{ selected: keypadTower === t }}
+                accessibilityHint={`Double tap to select ${t} Tower`}
               >
                 <MaterialCommunityIcons
                   name="office-building"
@@ -342,9 +347,10 @@ export default function RoomSelectScreen() {
               !keypadValue && styles.goButtonDisabled,
               pressed && keypadValue ? { opacity: 0.9, transform: [{ scale: 0.98 }] } : undefined,
             ]}
-            accessibilityLabel={`Find room ${keypadValue || ""}`}
+            accessibilityLabel={keypadValue ? `Find room ${keypadValue} in ${keypadTower} Tower` : "Find My Room, enter a room number first"}
             accessibilityRole="button"
             accessibilityState={{ disabled: !keypadValue }}
+            accessibilityHint={keypadValue ? "Double tap to get directions to this room" : ""}
           >
             <MaterialCommunityIcons name="magnify" size={22} color={Colors.textLight} />
             <Text style={styles.goButtonText}>Find My Room</Text>
@@ -365,6 +371,7 @@ export default function RoomSelectScreen() {
                 onChangeText={setSearch}
                 keyboardType="number-pad"
                 accessibilityLabel="Search by room number"
+                accessibilityHint="Type a room number to filter the list"
                 returnKeyType="search"
               />
               {search.length > 0 && (
@@ -440,6 +447,7 @@ export default function RoomSelectScreen() {
                 value={search}
                 onChangeText={setSearch}
                 accessibilityLabel="Search ground floor facilities"
+                accessibilityHint="Type to filter locations by name"
                 returnKeyType="search"
               />
               {search.length > 0 && (

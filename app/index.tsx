@@ -86,15 +86,19 @@ export default function WelcomeScreen() {
               router.push("/settings");
             }}
             style={styles.settingsButton}
-            accessibilityLabel="Settings"
+            accessibilityLabel="Settings and Info"
             accessibilityRole="button"
+            accessibilityHint="Opens settings for language, units, and app info"
           >
-            <Ionicons name="settings-outline" size={24} color={Colors.textLight} />
+            <Ionicons name="settings-outline" size={18} color={Colors.textLight} />
+            <Text style={styles.settingsLabel}>Settings / Info</Text>
           </Pressable>
           <MaterialCommunityIcons
             name="home-city"
             size={32}
             color={Colors.accentLight}
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
           />
           <Text
             style={styles.hotelName}
@@ -102,10 +106,10 @@ export default function WelcomeScreen() {
           >
             {HOTEL_INFO.name}
           </Text>
-          <Text style={styles.hotelSubtitle}>{HOTEL_INFO.subtitle}</Text>
+          <Text style={styles.hotelSubtitle} accessibilityRole="text">{HOTEL_INFO.subtitle}</Text>
         </View>
 
-        <View style={styles.nfcSection}>
+        <View style={styles.nfcSection} accessible={true} accessibilityRole="text" accessibilityLabel="Find Your Room. Tap your key card or enter your room number.">
           <Text style={styles.tapTitle}>Find Your Room</Text>
           <Text style={styles.tapSubtitle}>
             Tap your key card or enter your room number
@@ -117,12 +121,12 @@ export default function WelcomeScreen() {
               styles.nfcButton,
               pressed && styles.nfcButtonPressed,
             ]}
-            accessibilityLabel="Tap to simulate NFC key card scan. This will take you to room selection."
+            accessibilityLabel="Tap Key Card"
             accessibilityRole="button"
-            accessibilityHint="Double tap to scan your hotel key card"
+            accessibilityHint="Double tap to scan your hotel key card and go to room selection"
           >
-            <Animated.View style={[styles.nfcPulse, pulseStyle]} />
-            <View style={styles.nfcInner}>
+            <Animated.View style={[styles.nfcPulse, pulseStyle]} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants" />
+            <View style={styles.nfcInner} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
               <MaterialCommunityIcons
                 name="nfc"
                 size={56}
@@ -134,7 +138,7 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.bottomSection}>
-          <View style={styles.dividerRow}>
+          <View style={styles.dividerRow} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>or</Text>
             <View style={styles.dividerLine} />
@@ -146,14 +150,15 @@ export default function WelcomeScreen() {
               styles.manualButton,
               pressed && styles.manualButtonPressed,
             ]}
-            accessibilityLabel="Enter room number manually"
+            accessibilityLabel="Enter Room Number"
             accessibilityRole="button"
+            accessibilityHint="Double tap to type in your room number using a keypad"
           >
             <Ionicons name="keypad-outline" size={22} color={Colors.textLight} />
             <Text style={styles.manualButtonText}>Enter Room Number</Text>
           </Pressable>
 
-          <View style={styles.accessibilityBadge}>
+          <View style={styles.accessibilityBadge} accessible={true} accessibilityRole="text" accessibilityLabel="Accessibility-friendly directions available">
             <MaterialCommunityIcons
               name="wheelchair-accessibility"
               size={18}
@@ -186,13 +191,19 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     right: 0,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.12)",
     zIndex: 10,
+  },
+  settingsLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    color: Colors.textLight,
   },
   hotelName: {
     fontFamily: "Inter_700Bold",
