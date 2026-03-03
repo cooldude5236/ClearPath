@@ -21,6 +21,8 @@ import {
   GROUND_FLOOR_LOCATIONS,
   getLocationDirections,
 } from "@/constants/hotel-data";
+import { useSettings, convertDistance } from "@/contexts/SettingsContext";
+import type { Units } from "@/contexts/SettingsContext";
 
 function StepCard({
   step,
@@ -28,13 +30,16 @@ function StepCard({
   isCompleted,
   onPress,
   totalSteps,
+  units,
 }: {
   step: DirectionStep;
   isActive: boolean;
   isCompleted: boolean;
   onPress: () => void;
   totalSteps: number;
+  units: Units;
 }) {
+  const displayDistance = convertDistance(step.distance, units);
   const getIconName = (icon: string): keyof typeof MaterialCommunityIcons.glyphMap => {
     const iconMap: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> = {
       "door-open": "door-open",
@@ -81,7 +86,7 @@ function StepCard({
         isCompleted && styles.stepCardCompleted,
         pressed && { opacity: 0.9 },
       ]}
-      accessibilityLabel={`Step ${step.id} of ${totalSteps}: ${step.instruction}${step.distance ? `, ${step.distance}` : ""}${step.accessibleNote ? `. Accessibility note: ${step.accessibleNote}` : ""}`}
+      accessibilityLabel={`Step ${step.id} of ${totalSteps}: ${step.instruction}${displayDistance ? `, ${displayDistance}` : ""}${step.accessibleNote ? `. Accessibility note: ${step.accessibleNote}` : ""}`}
       accessibilityRole="button"
       accessibilityState={{ selected: isActive }}
     >
@@ -133,8 +138,8 @@ function StepCard({
             </View>
             <View style={styles.stepTextArea}>
               <Text style={styles.stepLandmark}>{step.landmark}</Text>
-              {!!step.distance && (
-                <Text style={styles.stepDistance}>{step.distance}</Text>
+              {!!displayDistance && (
+                <Text style={styles.stepDistance}>{displayDistance}</Text>
               )}
             </View>
           </View>
@@ -168,6 +173,7 @@ function StepCard({
 
 export default function DirectionsScreen() {
   const insets = useSafeAreaInsets();
+  const { units } = useSettings();
   const { roomNumber, tower, routeType, locationId } = useLocalSearchParams<{
     roomNumber: string;
     tower: string;
@@ -395,6 +401,7 @@ export default function DirectionsScreen() {
             isCompleted={index < currentStep}
             onPress={() => handleStepPress(index)}
             totalSteps={steps.length}
+            units={units}
           />
         )}
         contentContainerStyle={[

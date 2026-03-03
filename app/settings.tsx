@@ -15,6 +15,8 @@ import Colors from "@/constants/colors";
 import { useSettings, LANGUAGES } from "@/contexts/SettingsContext";
 import type { Language, Units } from "@/contexts/SettingsContext";
 
+type SettingsUnits = Units;
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { language, setLanguage, units, setUnits } = useSettings();
@@ -32,7 +34,7 @@ export default function SettingsScreen() {
     setLanguage(code);
   };
 
-  const handleUnitsSelect = (u: Units) => {
+  const handleUnitsSelect = (u: SettingsUnits) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setUnits(u);
   };
@@ -125,58 +127,58 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <View style={styles.unitsRow}>
               <Pressable
-                onPress={() => handleUnitsSelect("mi")}
+                onPress={() => handleUnitsSelect("imperial")}
                 style={[
                   styles.unitButton,
-                  units === "mi" && styles.unitButtonActive,
+                  units === "imperial" && styles.unitButtonActive,
                 ]}
-                accessibilityLabel={`Miles. ${units === "mi" ? "Selected" : "Not selected"}`}
+                accessibilityLabel={`Imperial, feet. ${units === "imperial" ? "Selected" : "Not selected"}`}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: units === "mi" }}
+                accessibilityState={{ selected: units === "imperial" }}
               >
                 <Text
                   style={[
                     styles.unitButtonText,
-                    units === "mi" && styles.unitButtonTextActive,
+                    units === "imperial" && styles.unitButtonTextActive,
                   ]}
                 >
-                  mi
+                  ft
                 </Text>
                 <Text
                   style={[
                     styles.unitButtonSub,
-                    units === "mi" && styles.unitButtonSubActive,
+                    units === "imperial" && styles.unitButtonSubActive,
                   ]}
                 >
-                  Miles
+                  Imperial
                 </Text>
               </Pressable>
 
               <Pressable
-                onPress={() => handleUnitsSelect("km")}
+                onPress={() => handleUnitsSelect("metric")}
                 style={[
                   styles.unitButton,
-                  units === "km" && styles.unitButtonActive,
+                  units === "metric" && styles.unitButtonActive,
                 ]}
-                accessibilityLabel={`Kilometers. ${units === "km" ? "Selected" : "Not selected"}`}
+                accessibilityLabel={`Metric, metres. ${units === "metric" ? "Selected" : "Not selected"}`}
                 accessibilityRole="radio"
-                accessibilityState={{ selected: units === "km" }}
+                accessibilityState={{ selected: units === "metric" }}
               >
                 <Text
                   style={[
                     styles.unitButtonText,
-                    units === "km" && styles.unitButtonTextActive,
+                    units === "metric" && styles.unitButtonTextActive,
                   ]}
                 >
-                  km
+                  m
                 </Text>
                 <Text
                   style={[
                     styles.unitButtonSub,
-                    units === "km" && styles.unitButtonSubActive,
+                    units === "metric" && styles.unitButtonSubActive,
                   ]}
                 >
-                  Kilometers
+                  Metric
                 </Text>
               </Pressable>
             </View>
