@@ -80,6 +80,17 @@ export default function WelcomeScreen() {
         ]}
       >
         <View style={styles.header}>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/settings");
+            }}
+            style={styles.settingsButton}
+            accessibilityLabel="Settings"
+            accessibilityRole="button"
+          >
+            <Ionicons name="settings-outline" size={24} color={Colors.textLight} />
+          </Pressable>
           <MaterialCommunityIcons
             name="home-city"
             size={32}
@@ -170,6 +181,18 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     gap: 6,
+  },
+  settingsButton: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.12)",
+    zIndex: 10,
   },
   hotelName: {
     fontFamily: "Inter_700Bold",

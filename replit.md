@@ -12,6 +12,10 @@ The app is structured as a cross-platform Expo application (iOS, Android, Web) w
 - `route-choice.tsx` — Choose standard or accessible route
 - `directions.tsx` — Step-by-step directions with haptics and text-to-speech
 - `arrived.tsx` — "You've Arrived" celebration screen with animated checkmark and home button
+- `settings.tsx` — Settings screen with About info, Language selection (6 languages), and Units toggle (mi/km)
+
+**State Management:**
+- `contexts/SettingsContext.tsx` — React context + AsyncStorage for persistent language and units preferences
 
 ## User Preferences
 

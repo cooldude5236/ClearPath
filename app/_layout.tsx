@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import {
   useFonts,
   Inter_400Regular,
@@ -24,6 +25,7 @@ function RootLayoutNav() {
       <Stack.Screen name="route-choice" />
       <Stack.Screen name="directions" />
       <Stack.Screen name="arrived" />
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }
@@ -47,11 +49,13 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <KeyboardProvider>
-            <RootLayoutNav />
-          </KeyboardProvider>
-        </GestureHandlerRootView>
+        <SettingsProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <KeyboardProvider>
+              <RootLayoutNav />
+            </KeyboardProvider>
+          </GestureHandlerRootView>
+        </SettingsProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
