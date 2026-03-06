@@ -298,6 +298,10 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.nfcSection}>
+          <Text style={styles.tapTitle}>Find Your Room</Text>
+          <Text style={styles.tapSubtitle}>
+            Enter your room number to get step-by-step directions
+          </Text>
 
           <Pressable
             onPress={handleGetStarted}
@@ -397,22 +401,21 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
   },
   appBrand: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 18,
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
     color: "rgba(255,255,255,0.6)",
     textAlign: "center",
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     textTransform: "uppercase",
   },
   appTagline: {
     fontFamily: "Inter_500Medium",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.5)",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
     textAlign: "center",
     letterSpacing: 1.5,
     textTransform: "uppercase",
-    marginTop: -2,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   hotelName: {
     fontFamily: "Inter_700Bold",
