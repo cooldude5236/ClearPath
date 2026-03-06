@@ -181,7 +181,7 @@ export default function DirectionsScreen() {
     locationId: string;
   }>();
   const [currentStep, setCurrentStep] = useState(0);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
