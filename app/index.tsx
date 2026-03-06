@@ -407,11 +407,10 @@ const styles = StyleSheet.create({
   },
   hotelSubtitle: {
     fontFamily: "Inter_400Regular",
-    fontSize: 14,
+    fontSize: 13,
     color: "rgba(255,255,255,0.75)",
     textAlign: "center",
-    maxWidth: 260,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   nfcSection: {
     alignItems: "center",
