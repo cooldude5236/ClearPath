@@ -279,6 +279,7 @@ export default function WelcomeScreen() {
         ]}
       >
         <Text style={styles.appBrand}>ClearPath</Text>
+        <Text style={styles.appTagline}>Your way to your stay</Text>
         <View style={styles.header}>
           <MaterialCommunityIcons
             name="home-city"
@@ -406,6 +407,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 1.5,
     textTransform: "uppercase",
+  },
+  appTagline: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    color: "rgba(255,255,255,0.6)",
+    textAlign: "center",
+    letterSpacing: 1.5,
+    marginBottom: 4,
   },
   hotelName: {
     fontFamily: "Inter_700Bold",
