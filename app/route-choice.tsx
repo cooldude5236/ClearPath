@@ -52,7 +52,7 @@ export default function RouteChoiceScreen() {
     );
   }
 
-  const corridorName = { A: "East", B: "North", C: "West", D: "South" }[room.side];
+  const corridorName = { A: "Left", B: "Top", C: "Right", D: "Bottom" }[room.side];
 
   return (
     <View style={styles.container}>
