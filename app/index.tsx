@@ -278,30 +278,23 @@ export default function WelcomeScreen() {
           },
         ]}
       >
-        <Text style={styles.appBrand}>ClearPath</Text>
-        <Text style={styles.appTagline}>Your way to your stay</Text>
         <View style={styles.header}>
-          <MaterialCommunityIcons
-            name="home-city"
-            size={32}
-            color={Colors.accentLight}
-            accessibilityElementsHidden={true}
-            importantForAccessibility="no-hide-descendants"
-          />
-          <Text
-            style={styles.hotelName}
-            accessibilityRole="header"
-          >
-            {HOTEL_INFO.name}
-          </Text>
-          <Text style={styles.hotelSubtitle} accessibilityRole="text">{HOTEL_INFO.subtitle}</Text>
+          <Text style={styles.appBrand}>ClearPath</Text>
+          <Text style={styles.appTagline}>Your way to your stay</Text>
+          <View style={styles.hotelRow} accessible={true} accessibilityRole="text" accessibilityLabel={`${HOTEL_INFO.name}, ${HOTEL_INFO.subtitle}`}>
+            <MaterialCommunityIcons
+              name="home-city"
+              size={20}
+              color={Colors.accentLight}
+              accessibilityElementsHidden={true}
+              importantForAccessibility="no-hide-descendants"
+            />
+            <Text style={styles.hotelName}>{HOTEL_INFO.name}</Text>
+            <Text style={styles.hotelSubtitle}>{HOTEL_INFO.subtitle}</Text>
+          </View>
         </View>
 
         <View style={styles.nfcSection}>
-          <Text style={styles.tapTitle}>Find Your Room</Text>
-          <Text style={styles.tapSubtitle}>
-            Enter your room number to get step-by-step directions
-          </Text>
 
           <Pressable
             onPress={handleGetStarted}
@@ -416,21 +409,24 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginTop: -2,
-    marginBottom: 12,
+    marginBottom: 10,
+  },
+  hotelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    flexWrap: "wrap",
   },
   hotelName: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 26,
-    color: Colors.textLight,
-    textAlign: "center",
-    marginTop: 4,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.7)",
   },
   hotelSubtitle: {
     fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    color: "rgba(255,255,255,0.75)",
-    textAlign: "center",
-    lineHeight: 18,
+    fontSize: 12,
+    color: "rgba(255,255,255,0.5)",
   },
   nfcSection: {
     alignItems: "center",
