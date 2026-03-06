@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Pressable,
   Platform,
-  AccessibilityInfo,
+  Dimensions,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,16 +17,150 @@ import Animated, {
   withRepeat,
   withTiming,
   withSequence,
+  withDelay,
   Easing,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import Colors from "@/constants/colors";
 import { HOTEL_INFO } from "@/constants/hotel-data";
 
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+
+const PARTICLE_COUNT = 12;
+
+function seededRandom(seed: number) {
+  const x = Math.sin(seed * 9301 + 49297) * 233280;
+  return x - Math.floor(x);
+}
+
+interface ParticleConfig {
+  startX: number;
+  startY: number;
+  size: number;
+  opacity: number;
+  driftX: number;
+  driftY: number;
+  duration: number;
+  delay: number;
+}
+
+function generateParticles(): ParticleConfig[] {
+  const particles: ParticleConfig[] = [];
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const r1 = seededRandom(i + 1);
+    const r2 = seededRandom(i + 100);
+    const r3 = seededRandom(i + 200);
+    const r4 = seededRandom(i + 300);
+    const r5 = seededRandom(i + 400);
+    const r6 = seededRandom(i + 500);
+    particles.push({
+      startX: r1 * SCREEN_W * 0.9,
+      startY: r2 * SCREEN_H * 0.9,
+      size: 4 + r3 * 18,
+      opacity: 0.04 + r4 * 0.1,
+      driftX: (r5 - 0.5) * 60,
+      driftY: (r6 - 0.5) * 80,
+      duration: 6000 + r3 * 10000,
+      delay: r1 * 3000,
+    });
+  }
+  return particles;
+}
+
+function FloatingParticle({ config }: { config: ParticleConfig }) {
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(0.7);
+  const opacity = useSharedValue(config.opacity * 0.3);
+
+  useEffect(() => {
+    translateX.value = withDelay(
+      config.delay,
+      withRepeat(
+        withSequence(
+          withTiming(config.driftX, { duration: config.duration, easing: Easing.inOut(Easing.ease) }),
+          withTiming(-config.driftX * 0.6, { duration: config.duration * 0.8, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: config.duration * 0.5, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      )
+    );
+    translateY.value = withDelay(
+      config.delay,
+      withRepeat(
+        withSequence(
+          withTiming(config.driftY, { duration: config.duration * 1.1, easing: Easing.inOut(Easing.ease) }),
+          withTiming(-config.driftY * 0.7, { duration: config.duration * 0.9, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: config.duration * 0.6, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      )
+    );
+    scale.value = withDelay(
+      config.delay,
+      withRepeat(
+        withSequence(
+          withTiming(1.3, { duration: config.duration * 0.7, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.7, { duration: config.duration * 0.7, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
+    opacity.value = withDelay(
+      config.delay,
+      withRepeat(
+        withSequence(
+          withTiming(config.opacity, { duration: config.duration * 0.5, easing: Easing.inOut(Easing.ease) }),
+          withTiming(config.opacity * 0.3, { duration: config.duration * 0.5, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          left: config.startX,
+          top: config.startY,
+          width: config.size,
+          height: config.size,
+          borderRadius: config.size / 2,
+          backgroundColor: "#FFFFFF",
+        },
+        animStyle,
+      ]}
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
+    />
+  );
+}
+
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.6);
+  const particles = useMemo(() => generateParticles(), []);
+
+  const shimmer1Y = useSharedValue(0);
+  const shimmer2Y = useSharedValue(0);
+  const shimmer1Opacity = useSharedValue(0);
+  const shimmer2Opacity = useSharedValue(0);
 
   useEffect(() => {
     pulseScale.value = withRepeat(
@@ -45,11 +179,60 @@ export default function WelcomeScreen() {
       -1,
       false
     );
+
+    shimmer1Y.value = withRepeat(
+      withSequence(
+        withTiming(-SCREEN_H * 0.15, { duration: 8000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(SCREEN_H * 0.15, { duration: 8000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+    shimmer1Opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.06, { duration: 5000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.02, { duration: 5000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+    shimmer2Y.value = withDelay(
+      3000,
+      withRepeat(
+        withSequence(
+          withTiming(SCREEN_H * 0.12, { duration: 10000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(-SCREEN_H * 0.12, { duration: 10000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
+    shimmer2Opacity.value = withDelay(
+      3000,
+      withRepeat(
+        withSequence(
+          withTiming(0.05, { duration: 7000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.01, { duration: 7000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
   }, []);
 
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseScale.value }],
     opacity: pulseOpacity.value,
+  }));
+
+  const shimmer1Style = useAnimatedStyle(() => ({
+    transform: [{ translateY: shimmer1Y.value }],
+    opacity: shimmer1Opacity.value,
+  }));
+
+  const shimmer2Style = useAnimatedStyle(() => ({
+    transform: [{ translateY: shimmer2Y.value }],
+    opacity: shimmer2Opacity.value,
   }));
 
   const handleNfcTap = () => {
@@ -70,6 +253,27 @@ export default function WelcomeScreen() {
       colors={[Colors.primary, Colors.primaryLight, "#3A7D5C"]}
       style={styles.container}
     >
+      <View style={styles.particleLayer} pointerEvents="none" accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
+        {particles.map((p, i) => (
+          <FloatingParticle key={i} config={p} />
+        ))}
+
+        <Animated.View
+          style={[
+            styles.shimmerBlob,
+            { top: "15%", left: "-20%", width: SCREEN_W * 1.2, height: SCREEN_H * 0.35 },
+            shimmer1Style,
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.shimmerBlob,
+            { top: "55%", right: "-15%", width: SCREEN_W * 0.9, height: SCREEN_H * 0.3 },
+            shimmer2Style,
+          ]}
+        />
+      </View>
+
       <View
         style={[
           styles.content,
@@ -177,6 +381,15 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  particleLayer: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: "hidden",
+  },
+  shimmerBlob: {
+    position: "absolute",
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.04)",
   },
   content: {
     flex: 1,
