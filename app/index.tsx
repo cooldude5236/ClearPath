@@ -279,19 +279,6 @@ export default function WelcomeScreen() {
         ]}
       >
         <View style={styles.header}>
-          <Pressable
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push("/settings");
-            }}
-            style={styles.settingsButton}
-            accessibilityLabel="Settings and Info"
-            accessibilityRole="button"
-            accessibilityHint="Opens settings for language, units, and app info"
-          >
-            <Ionicons name="settings-outline" size={18} color={Colors.textLight} />
-            <Text style={styles.settingsLabel}>Settings / Info</Text>
-          </Pressable>
           <MaterialCommunityIcons
             name="home-city"
             size={32}
@@ -347,6 +334,23 @@ export default function WelcomeScreen() {
               Accessibility-friendly directions available
             </Text>
           </View>
+
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/settings");
+            }}
+            style={({ pressed }) => [
+              styles.settingsBottomButton,
+              pressed && styles.settingsBottomButtonPressed,
+            ]}
+            accessibilityLabel="Settings and Info"
+            accessibilityRole="button"
+            accessibilityHint="Opens settings for language, units, and app info"
+          >
+            <Ionicons name="settings-outline" size={18} color={Colors.textLight} />
+            <Text style={styles.settingsBottomText}>Settings / Info</Text>
+          </Pressable>
         </View>
       </View>
     </LinearGradient>
@@ -375,22 +379,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  settingsButton: {
-    position: "absolute",
-    top: 0,
-    right: 0,
+  settingsBottomButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    zIndex: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignSelf: "stretch",
   },
-  settingsLabel: {
-    fontFamily: "Inter_500Medium",
-    fontSize: 12,
+  settingsBottomButtonPressed: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+  settingsBottomText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
     color: Colors.textLight,
   },
   hotelName: {
@@ -509,11 +514,13 @@ const styles = StyleSheet.create({
   accessibilityBadge: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    alignSelf: "stretch",
   },
   accessibilityText: {
     fontFamily: "Inter_400Regular",
