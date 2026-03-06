@@ -279,6 +279,7 @@ export default function WelcomeScreen() {
         ]}
       >
         <View style={styles.header}>
+          <Text style={styles.appName} accessibilityRole="header">ClearPath</Text>
           <MaterialCommunityIcons
             name="home-city"
             size={32}
@@ -288,7 +289,7 @@ export default function WelcomeScreen() {
           />
           <Text
             style={styles.hotelName}
-            accessibilityRole="header"
+            accessibilityRole="text"
           >
             {HOTEL_INFO.name}
           </Text>
@@ -398,12 +399,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textLight,
   },
-  hotelName: {
+  appName: {
     fontFamily: "Inter_700Bold",
-    fontSize: 26,
+    fontSize: 32,
     color: Colors.textLight,
     textAlign: "center",
-    marginTop: 8,
+    letterSpacing: 1,
+  },
+  hotelName: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.textLight,
+    textAlign: "center",
+    marginTop: 4,
   },
   hotelSubtitle: {
     fontFamily: "Inter_400Regular",
