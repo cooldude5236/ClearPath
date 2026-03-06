@@ -827,17 +827,17 @@ export function getLocationDirections(location: GroundFloorLocation): DirectionS
 }
 
 const SIDE_LABELS: Record<string, { corridor: string; turn: string; oppositeTurn: string; distance: string }> = {
-  A: { corridor: "Left Corridor",   turn: "Turn left out of the elevator hall",     oppositeTurn: "right", distance: `${4 * 12} – ${9 * 12} ft` },
-  B: { corridor: "Top Corridor",    turn: "Walk to the end of the left corridor and turn right", oppositeTurn: "left", distance: `${10 * 12} – ${18 * 12} ft` },
-  C: { corridor: "Right Corridor",  turn: "Turn right out of the elevator hall",    oppositeTurn: "left",  distance: `${4 * 12} – ${9 * 12} ft` },
-  D: { corridor: "Bottom Corridor", turn: "Walk to the end of the right corridor and turn right", oppositeTurn: "left",  distance: `${10 * 12} – ${18 * 12} ft` },
+  A: { corridor: "Left Corridor",   turn: "Exit the elevator hall and turn left",     oppositeTurn: "right", distance: `${4 * 12} – ${9 * 12} ft` },
+  B: { corridor: "Top Corridor",    turn: "Exit the elevator hall, turn left, then turn right at the corner", oppositeTurn: "left", distance: `${10 * 12} – ${18 * 12} ft` },
+  C: { corridor: "Right Corridor",  turn: "Exit the elevator hall and turn right",    oppositeTurn: "left",  distance: `${4 * 12} – ${9 * 12} ft` },
+  D: { corridor: "Bottom Corridor", turn: "Exit the elevator hall, turn right, then turn right at the corner", oppositeTurn: "left",  distance: `${10 * 12} – ${18 * 12} ft` },
 };
 
 const SOUTH_SIDE_LABELS: Record<string, { corridor: string; turn: string; oppositeTurn: string; distance: string }> = {
-  A: { corridor: "Left Corridor",   turn: "Turn right out of the elevator hall",    oppositeTurn: "left",  distance: `${4 * 12} – ${9 * 12} ft` },
-  B: { corridor: "Top Corridor",    turn: "Walk to the end of the left corridor and turn left", oppositeTurn: "right", distance: `${10 * 12} – ${18 * 12} ft` },
-  C: { corridor: "Right Corridor",  turn: "Turn left out of the elevator hall",     oppositeTurn: "right", distance: `${4 * 12} – ${9 * 12} ft` },
-  D: { corridor: "Bottom Corridor", turn: "Walk to the end of the right corridor and turn left", oppositeTurn: "right", distance: `${10 * 12} – ${18 * 12} ft` },
+  A: { corridor: "Left Corridor",   turn: "Exit the elevator hall and turn left",     oppositeTurn: "right", distance: `${4 * 12} – ${9 * 12} ft` },
+  B: { corridor: "Top Corridor",    turn: "Exit the elevator hall, turn left, then turn right at the corner", oppositeTurn: "left", distance: `${10 * 12} – ${18 * 12} ft` },
+  C: { corridor: "Right Corridor",  turn: "Exit the elevator hall and turn right",    oppositeTurn: "left",  distance: `${4 * 12} – ${9 * 12} ft` },
+  D: { corridor: "Bottom Corridor", turn: "Exit the elevator hall, turn right, then turn right at the corner", oppositeTurn: "left",  distance: `${10 * 12} – ${18 * 12} ft` },
 };
 
 function getRoomSideOnWall(roomNum: number): number {
