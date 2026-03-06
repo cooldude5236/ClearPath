@@ -26,7 +26,7 @@ import { HOTEL_INFO } from "@/constants/hotel-data";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
-const PARTICLE_COUNT = 12;
+const PARTICLE_COUNT = 24;
 
 function seededRandom(seed: number) {
   const x = Math.sin(seed * 9301 + 49297) * 233280;
@@ -58,9 +58,9 @@ function generateParticles(): ParticleConfig[] {
       startY: r2 * SCREEN_H * 0.9,
       size: 4 + r3 * 18,
       opacity: 0.04 + r4 * 0.1,
-      driftX: (r5 - 0.5) * 60,
-      driftY: (r6 - 0.5) * 80,
-      duration: 6000 + r3 * 10000,
+      driftX: (r5 - 0.5) * 90,
+      driftY: (r6 - 0.5) * 120,
+      duration: 3000 + r3 * 5000,
       delay: r1 * 3000,
     });
   }
@@ -153,8 +153,6 @@ function FloatingParticle({ config }: { config: ParticleConfig }) {
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
-  const pulseScale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(0.6);
   const particles = useMemo(() => generateParticles(), []);
 
   const shimmer1Y = useSharedValue(0);
@@ -163,23 +161,6 @@ export default function WelcomeScreen() {
   const shimmer2Opacity = useSharedValue(0);
 
   useEffect(() => {
-    pulseScale.value = withRepeat(
-      withSequence(
-        withTiming(1.15, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      false
-    );
-    pulseOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.3, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.6, { duration: 1200, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      false
-    );
-
     shimmer1Y.value = withRepeat(
       withSequence(
         withTiming(-SCREEN_H * 0.15, { duration: 8000, easing: Easing.inOut(Easing.ease) }),
@@ -220,11 +201,6 @@ export default function WelcomeScreen() {
     );
   }, []);
 
-  const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-    opacity: pulseOpacity.value,
-  }));
-
   const shimmer1Style = useAnimatedStyle(() => ({
     transform: [{ translateY: shimmer1Y.value }],
     opacity: shimmer1Opacity.value,
@@ -235,13 +211,8 @@ export default function WelcomeScreen() {
     opacity: shimmer2Opacity.value,
   }));
 
-  const handleNfcTap = () => {
+  const handleGetStarted = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push("/room-select");
-  };
-
-  const handleManualEntry = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push("/room-select");
   };
 
@@ -313,55 +284,29 @@ export default function WelcomeScreen() {
           <Text style={styles.hotelSubtitle} accessibilityRole="text">{HOTEL_INFO.subtitle}</Text>
         </View>
 
-        <View style={styles.nfcSection} accessible={true} accessibilityRole="text" accessibilityLabel="Find Your Room. Tap your key card or enter your room number.">
+        <View style={styles.centerSection}>
           <Text style={styles.tapTitle}>Find Your Room</Text>
           <Text style={styles.tapSubtitle}>
-            Tap your key card or enter your room number
+            Enter your room number to get step-by-step directions
           </Text>
 
           <Pressable
-            onPress={handleNfcTap}
+            onPress={handleGetStarted}
             style={({ pressed }) => [
-              styles.nfcButton,
-              pressed && styles.nfcButtonPressed,
+              styles.getStartedButton,
+              pressed && styles.getStartedButtonPressed,
             ]}
-            accessibilityLabel="Tap Key Card"
+            accessibilityLabel="Get Started"
             accessibilityRole="button"
-            accessibilityHint="Double tap to scan your hotel key card and go to room selection"
+            accessibilityHint="Double tap to enter your room number and get directions"
           >
-            <Animated.View style={[styles.nfcPulse, pulseStyle]} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants" />
-            <View style={styles.nfcInner} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
-              <MaterialCommunityIcons
-                name="nfc"
-                size={56}
-                color={Colors.primary}
-              />
-              <Text style={styles.nfcText}>Tap Key Card</Text>
-            </View>
+            <MaterialCommunityIcons name="map-marker-path" size={24} color={Colors.primary} />
+            <Text style={styles.getStartedText}>Get Started</Text>
+            <Ionicons name="arrow-forward" size={20} color={Colors.primary} />
           </Pressable>
         </View>
 
         <View style={styles.bottomSection}>
-          <View style={styles.dividerRow} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <Pressable
-            onPress={handleManualEntry}
-            style={({ pressed }) => [
-              styles.manualButton,
-              pressed && styles.manualButtonPressed,
-            ]}
-            accessibilityLabel="Enter Room Number"
-            accessibilityRole="button"
-            accessibilityHint="Double tap to type in your room number using a keypad"
-          >
-            <Ionicons name="keypad-outline" size={22} color={Colors.textLight} />
-            <Text style={styles.manualButtonText}>Enter Room Number</Text>
-          </Pressable>
-
           <View style={styles.accessibilityBadge} accessible={true} accessibilityRole="text" accessibilityLabel="Accessibility-friendly directions available">
             <MaterialCommunityIcons
               name="wheelchair-accessibility"
@@ -433,9 +378,9 @@ const styles = StyleSheet.create({
     maxWidth: 260,
     lineHeight: 20,
   },
-  nfcSection: {
+  centerSection: {
     alignItems: "center",
-    gap: 12,
+    gap: 16,
   },
   tapTitle: {
     fontFamily: "Inter_700Bold",
@@ -448,88 +393,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "rgba(255,255,255,0.8)",
     textAlign: "center",
-    marginBottom: 16,
     lineHeight: 22,
+    maxWidth: 280,
   },
-  nfcButton: {
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+  getStartedButton: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-  },
-  nfcButtonPressed: {
-    transform: [{ scale: 0.95 }],
-  },
-  nfcPulse: {
-    position: "absolute",
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.3)",
-  },
-  nfcInner: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    gap: 12,
     backgroundColor: Colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 36,
+    marginTop: 12,
+    minHeight: 64,
+    minWidth: 240,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
   },
-  nfcText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
+  getStartedButtonPressed: {
+    transform: [{ scale: 0.96 }],
+    opacity: 0.9,
+  },
+  getStartedText: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 20,
     color: Colors.primary,
   },
   bottomSection: {
     gap: 16,
     alignItems: "center",
-  },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    width: "100%",
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.25)",
-  },
-  dividerText: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    color: "rgba(255,255,255,0.6)",
-  },
-  manualButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.3)",
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 32,
-    width: "100%",
-    minHeight: 60,
-  },
-  manualButtonPressed: {
-    backgroundColor: "rgba(255,255,255,0.25)",
-  },
-  manualButtonText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: Colors.textLight,
   },
   accessibilityBadge: {
     flexDirection: "row",
