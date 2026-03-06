@@ -337,26 +337,6 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.bottomSection}>
-          <View style={styles.dividerRow} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <Pressable
-            onPress={handleGetStarted}
-            style={({ pressed }) => [
-              styles.manualButton,
-              pressed && styles.manualButtonPressed,
-            ]}
-            accessibilityLabel="Enter Room Number"
-            accessibilityRole="button"
-            accessibilityHint="Double tap to type in your room number using a keypad"
-          >
-            <Ionicons name="keypad-outline" size={22} color={Colors.textLight} />
-            <Text style={styles.manualButtonText}>Enter Room Number</Text>
-          </Pressable>
-
           <View style={styles.accessibilityBadge} accessible={true} accessibilityRole="text" accessibilityLabel="Accessibility-friendly directions available">
             <MaterialCommunityIcons
               name="wheelchair-accessibility"
