@@ -410,10 +410,11 @@ const styles = StyleSheet.create({
   },
   appTagline: {
     fontFamily: "Inter_500Medium",
-    fontSize: 12,
+    fontSize: 14,
     color: "rgba(255,255,255,0.6)",
     textAlign: "center",
     letterSpacing: 1.5,
+    textTransform: "uppercase",
     marginBottom: 4,
   },
   hotelName: {
