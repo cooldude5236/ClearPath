@@ -56,7 +56,8 @@ export default function RouteChoiceScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.topSection, { paddingTop: insets.top + webTopInset + 12 }]}>
+      <View style={[styles.topSection, { paddingTop: insets.top + webTopInset + 8 }]}>
+        <Text style={styles.appBrand}>CLEARPATH</Text>
         <Pressable
           onPress={handleBack}
           accessibilityLabel="Go back to room selection"
@@ -205,6 +206,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  appBrand: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 11,
+    color: "rgba(0,0,0,0.35)",
+    textAlign: "center",
+    letterSpacing: 1.5,
+    marginBottom: 4,
   },
   topSection: {
     paddingHorizontal: 20,

@@ -91,11 +91,12 @@ export default function ArrivedScreen() {
         style={[
           styles.content,
           {
-            paddingTop: insets.top + webTopInset + 40,
+            paddingTop: insets.top + webTopInset + 20,
             paddingBottom: insets.bottom + webBottomInset + 32,
           },
         ]}
       >
+        <Text style={styles.appBrand}>CLEARPATH</Text>
         <View style={styles.spacer} />
 
         <View
@@ -167,6 +168,13 @@ export default function ArrivedScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  appBrand: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 11,
+    color: "rgba(255,255,255,0.5)",
+    textAlign: "center",
+    letterSpacing: 1.5,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 32,

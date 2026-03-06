@@ -339,9 +339,10 @@ export default function DirectionsScreen() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + webTopInset + 8 },
+          { paddingTop: insets.top + webTopInset + 4 },
         ]}
       >
+        <Text style={styles.appBrand}>CLEARPATH</Text>
         <View style={styles.headerTop}>
           <Pressable
             onPress={handleBack}
@@ -494,6 +495,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  appBrand: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 11,
+    color: "rgba(0,0,0,0.35)",
+    textAlign: "center",
+    letterSpacing: 1.5,
+    marginBottom: 2,
   },
   header: {
     backgroundColor: Colors.surface,

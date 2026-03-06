@@ -43,23 +43,26 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <View
         style={[
-          styles.header,
-          { paddingTop: insets.top + webTopInset + 12 },
+          styles.headerWrap,
+          { paddingTop: insets.top + webTopInset + 8 },
         ]}
       >
-        <Pressable
-          onPress={handleBack}
-          style={styles.backButton}
-          accessibilityLabel="Go back to home screen"
-          accessibilityRole="button"
-          accessibilityHint="Double tap to return to the welcome screen"
-        >
-          <Ionicons name="arrow-back" size={24} color={Colors.textLight} />
-        </Pressable>
-        <Text style={styles.headerTitle} accessibilityRole="header">
-          Settings
-        </Text>
-        <View style={styles.backButton} />
+        <Text style={styles.appBrand}>CLEARPATH</Text>
+        <View style={styles.headerRow}>
+          <Pressable
+            onPress={handleBack}
+            style={styles.backButton}
+            accessibilityLabel="Go back to home screen"
+            accessibilityRole="button"
+            accessibilityHint="Double tap to return to the welcome screen"
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.textLight} />
+          </Pressable>
+          <Text style={styles.headerTitle} accessibilityRole="header">
+            Settings
+          </Text>
+          <View style={styles.backButton} />
+        </View>
       </View>
 
       <ScrollView
@@ -195,13 +198,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
+  appBrand: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 11,
+    color: "rgba(255,255,255,0.5)",
+    textAlign: "center",
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  headerWrap: {
+    backgroundColor: Colors.primary,
+    paddingBottom: 14,
+  },
+  headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingBottom: 14,
-    backgroundColor: Colors.primary,
   },
   backButton: {
     width: 44,
