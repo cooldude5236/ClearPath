@@ -278,8 +278,10 @@ export default function WelcomeScreen() {
           },
         ]}
       >
-        <Text style={styles.appBrand}>ClearPath</Text>
-        <Text style={styles.appTagline}>Your way to your stay</Text>
+        <View style={styles.brandRow}>
+          <Text style={styles.appBrand}>CLEARPATH</Text>
+          <Text style={styles.appTagline}>YOUR WAY TO YOUR STAY</Text>
+        </View>
         <View style={styles.header}>
           <MaterialCommunityIcons
             name="home-city"
@@ -400,22 +402,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textLight,
   },
+  brandRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 8,
+  },
   appBrand: {
     fontFamily: "Inter_500Medium",
     fontSize: 12,
     color: "rgba(255,255,255,0.6)",
-    textAlign: "center",
     letterSpacing: 1.5,
-    textTransform: "uppercase",
   },
   appTagline: {
     fontFamily: "Inter_500Medium",
-    fontSize: 14,
+    fontSize: 12,
     color: "rgba(255,255,255,0.6)",
-    textAlign: "center",
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    marginBottom: 4,
+    letterSpacing: 1,
   },
   hotelName: {
     fontFamily: "Inter_700Bold",
