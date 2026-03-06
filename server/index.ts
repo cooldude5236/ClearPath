@@ -207,7 +207,7 @@ function configureExpoAndLanding(app: express.Application) {
   app.use(express.static(path.resolve(process.cwd(), "static-build")));
 
   if (isProduction) {
-    app.get("*", (req: Request, res: Response, next: NextFunction) => {
+    app.get("/{*splat}", (req: Request, res: Response, next: NextFunction) => {
       if (req.path.startsWith("/api")) return next();
       const indexPath = path.resolve(process.cwd(), "static-build", "index.html");
       if (fs.existsSync(indexPath)) {
