@@ -153,6 +153,8 @@ function FloatingParticle({ config }: { config: ParticleConfig }) {
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
+  const pulseScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(0.6);
   const particles = useMemo(() => generateParticles(), []);
 
   const shimmer1Y = useSharedValue(0);
@@ -161,6 +163,23 @@ export default function WelcomeScreen() {
   const shimmer2Opacity = useSharedValue(0);
 
   useEffect(() => {
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.15, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+    pulseOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.3, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.6, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+
     shimmer1Y.value = withRepeat(
       withSequence(
         withTiming(-SCREEN_H * 0.15, { duration: 8000, easing: Easing.inOut(Easing.ease) }),
@@ -200,6 +219,11 @@ export default function WelcomeScreen() {
       )
     );
   }, []);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+    opacity: pulseOpacity.value,
+  }));
 
   const shimmer1Style = useAnimatedStyle(() => ({
     transform: [{ translateY: shimmer1Y.value }],
@@ -284,7 +308,7 @@ export default function WelcomeScreen() {
           <Text style={styles.hotelSubtitle} accessibilityRole="text">{HOTEL_INFO.subtitle}</Text>
         </View>
 
-        <View style={styles.centerSection}>
+        <View style={styles.nfcSection}>
           <Text style={styles.tapTitle}>Find Your Room</Text>
           <Text style={styles.tapSubtitle}>
             Enter your room number to get step-by-step directions
@@ -293,20 +317,46 @@ export default function WelcomeScreen() {
           <Pressable
             onPress={handleGetStarted}
             style={({ pressed }) => [
-              styles.getStartedButton,
-              pressed && styles.getStartedButtonPressed,
+              styles.circleButton,
+              pressed && styles.circleButtonPressed,
             ]}
             accessibilityLabel="Get Started"
             accessibilityRole="button"
             accessibilityHint="Double tap to enter your room number and get directions"
           >
-            <MaterialCommunityIcons name="map-marker-path" size={24} color={Colors.primary} />
-            <Text style={styles.getStartedText}>Get Started</Text>
-            <Ionicons name="arrow-forward" size={20} color={Colors.primary} />
+            <Animated.View style={[styles.circlePulse, pulseStyle]} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants" />
+            <View style={styles.circleInner} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
+              <MaterialCommunityIcons
+                name="map-marker-path"
+                size={48}
+                color={Colors.primary}
+              />
+              <Text style={styles.circleText}>Get Started</Text>
+            </View>
           </Pressable>
         </View>
 
         <View style={styles.bottomSection}>
+          <View style={styles.dividerRow} accessibilityElementsHidden={true} importantForAccessibility="no-hide-descendants">
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <Pressable
+            onPress={handleGetStarted}
+            style={({ pressed }) => [
+              styles.manualButton,
+              pressed && styles.manualButtonPressed,
+            ]}
+            accessibilityLabel="Enter Room Number"
+            accessibilityRole="button"
+            accessibilityHint="Double tap to type in your room number using a keypad"
+          >
+            <Ionicons name="keypad-outline" size={22} color={Colors.textLight} />
+            <Text style={styles.manualButtonText}>Enter Room Number</Text>
+          </Pressable>
+
           <View style={styles.accessibilityBadge} accessible={true} accessibilityRole="text" accessibilityLabel="Accessibility-friendly directions available">
             <MaterialCommunityIcons
               name="wheelchair-accessibility"
@@ -378,9 +428,9 @@ const styles = StyleSheet.create({
     maxWidth: 260,
     lineHeight: 20,
   },
-  centerSection: {
+  nfcSection: {
     alignItems: "center",
-    gap: 16,
+    gap: 12,
   },
   tapTitle: {
     fontFamily: "Inter_700Bold",
@@ -393,39 +443,88 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "rgba(255,255,255,0.8)",
     textAlign: "center",
+    marginBottom: 16,
     lineHeight: 22,
-    maxWidth: 280,
   },
-  getStartedButton: {
-    flexDirection: "row",
+  circleButton: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+  },
+  circleButtonPressed: {
+    transform: [{ scale: 0.95 }],
+  },
+  circlePulse: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  circleInner: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 36,
-    marginTop: 12,
-    minHeight: 64,
-    minWidth: 240,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     elevation: 8,
   },
-  getStartedButtonPressed: {
-    transform: [{ scale: 0.96 }],
-    opacity: 0.9,
-  },
-  getStartedText: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 20,
+  circleText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
     color: Colors.primary,
   },
   bottomSection: {
     gap: 16,
     alignItems: "center",
+  },
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    width: "100%",
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.25)",
+  },
+  dividerText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.6)",
+  },
+  manualButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.3)",
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    width: "100%",
+    minHeight: 60,
+  },
+  manualButtonPressed: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+  },
+  manualButtonText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 18,
+    color: Colors.textLight,
   },
   accessibilityBadge: {
     flexDirection: "row",
