@@ -278,20 +278,23 @@ export default function WelcomeScreen() {
           },
         ]}
       >
+        <Text style={styles.appBrand}>ClearPath</Text>
+        <Text style={styles.appTagline}>Your way to your stay</Text>
         <View style={styles.header}>
-          <Text style={styles.appBrand}>ClearPath</Text>
-          <Text style={styles.appTagline}>Your way to your stay</Text>
-          <View style={styles.hotelRow} accessible={true} accessibilityRole="text" accessibilityLabel={`${HOTEL_INFO.name}, ${HOTEL_INFO.subtitle}`}>
-            <MaterialCommunityIcons
-              name="home-city"
-              size={20}
-              color={Colors.accentLight}
-              accessibilityElementsHidden={true}
-              importantForAccessibility="no-hide-descendants"
-            />
-            <Text style={styles.hotelName}>{HOTEL_INFO.name}</Text>
-            <Text style={styles.hotelSubtitle}>{HOTEL_INFO.subtitle}</Text>
-          </View>
+          <MaterialCommunityIcons
+            name="home-city"
+            size={32}
+            color={Colors.accentLight}
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no-hide-descendants"
+          />
+          <Text
+            style={styles.hotelName}
+            accessibilityRole="header"
+          >
+            {HOTEL_INFO.name}
+          </Text>
+          <Text style={styles.hotelSubtitle} accessibilityRole="text">{HOTEL_INFO.subtitle}</Text>
         </View>
 
         <View style={styles.nfcSection}>
@@ -411,22 +414,19 @@ const styles = StyleSheet.create({
     marginTop: -2,
     marginBottom: 10,
   },
-  hotelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    flexWrap: "wrap",
-  },
   hotelName: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: "rgba(255,255,255,0.7)",
+    fontFamily: "Inter_700Bold",
+    fontSize: 26,
+    color: Colors.textLight,
+    textAlign: "center",
+    marginTop: 8,
   },
   hotelSubtitle: {
     fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.5)",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    textAlign: "center",
+    lineHeight: 18,
   },
   nfcSection: {
     alignItems: "center",
