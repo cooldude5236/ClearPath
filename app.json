@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "ClearPath Team 21016-1",
-    "slug": "clearpathteam210161",
+    "name": "RoomFinder",
+    "slug": "roomfinder",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "clearpathteam210161",
+    "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.clearpathteam210161.app"
+      "bundleIdentifier": "com.myapp"
     },
     "android": {
-      "package": "com.clearpathteam210161.app",
+      "package": "com.myapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
