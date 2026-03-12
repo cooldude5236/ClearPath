@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Pressable,
-  Platform,
   ScrollView,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -22,8 +21,6 @@ export default function RouteChoiceScreen() {
     (r) => r.number === roomNumber && r.tower === (tower as "North" | "South")
   );
 
-  const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const webBottomInset = Platform.OS === "web" ? 34 : 0;
 
   const handleRouteSelect = (routeType: "accessible" | "standard") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -40,7 +37,7 @@ export default function RouteChoiceScreen() {
 
   if (!room) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top + webTopInset + 20 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
         <View style={styles.errorState}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.warning} />
           <Text style={styles.errorText}>Room not found</Text>
@@ -56,7 +53,7 @@ export default function RouteChoiceScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.topSection, { paddingTop: insets.top + webTopInset + 8 }]}>
+      <View style={[styles.topSection, { paddingTop: insets.top + 8 }]}>
         <Text style={styles.appBrand}>CLEARPATH</Text>
         <Pressable
           onPress={handleBack}
@@ -70,7 +67,7 @@ export default function RouteChoiceScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + webBottomInset + 16 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.roomSummary} accessible={true} accessibilityRole="summary" accessibilityLabel={`Room ${room.number}, ${room.tower} Tower, Floor ${room.floor}, ${room.type}, ${corridorName} Corridor${room.accessibleRoom ? ", ADA Accessible Room" : ""}`}>

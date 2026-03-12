@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Pressable,
-  Platform,
   Dimensions,
 } from "react-native";
 import { router } from "expo-router";
@@ -240,8 +239,6 @@ export default function WelcomeScreen() {
     router.push("/room-select");
   };
 
-  const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const webBottomInset = Platform.OS === "web" ? 34 : 0;
 
   return (
     <LinearGradient
@@ -273,8 +270,8 @@ export default function WelcomeScreen() {
         style={[
           styles.content,
           {
-            paddingTop: insets.top + webTopInset + 40,
-            paddingBottom: insets.bottom + webBottomInset + 24,
+            paddingTop: insets.top + 40,
+            paddingBottom: insets.bottom + 24,
           },
         ]}
       >

@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Pressable,
-  Platform,
   FlatList,
   TextInput,
   SectionList,
@@ -121,8 +120,6 @@ export default function RoomSelectScreen() {
   const [keypadValue, setKeypadValue] = useState("");
   const [keypadTower, setKeypadTower] = useState<"North" | "South">("North");
 
-  const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const webBottomInset = Platform.OS === "web" ? 34 : 0;
 
   const floors = useMemo(() => Array.from(new Set(ROOMS.map((r) => r.floor))).sort((a, b) => a - b), []);
   const categories = useMemo(
@@ -212,7 +209,7 @@ export default function RoomSelectScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.headerArea, { paddingTop: insets.top + webTopInset + 8 }]}>
+      <View style={[styles.headerArea, { paddingTop: insets.top + 8 }]}>
         <Text style={styles.appBrand}>CLEARPATH</Text>
         <View style={styles.headerRow}>
           <Pressable onPress={handleBack} accessibilityLabel="Go back to home screen" accessibilityRole="button" accessibilityHint="Double tap to return to the welcome screen" hitSlop={12}>
@@ -252,7 +249,7 @@ export default function RoomSelectScreen() {
 
       {tab === "keypad" && (
         <ScrollView
-          contentContainerStyle={[styles.keypadContainer, { paddingBottom: insets.bottom + webBottomInset + 20 }]}
+          contentContainerStyle={[styles.keypadContainer, { paddingBottom: insets.bottom + 20 }]}
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
@@ -422,7 +419,7 @@ export default function RoomSelectScreen() {
             data={filteredRooms}
             keyExtractor={(item) => `${item.tower}-${item.number}`}
             renderItem={({ item }) => <RoomCard room={item} onSelect={handleSelectRoom} />}
-            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + webBottomInset + 16 }]}
+            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 16 }]}
             scrollEnabled={!!filteredRooms.length}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
@@ -498,7 +495,7 @@ export default function RoomSelectScreen() {
                 <Text style={[styles.sectionHeaderText, { color: CATEGORY_COLORS[title as LocationCategory] }]}>{title}</Text>
               </View>
             )}
-            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + webBottomInset + 16 }]}
+            contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 16 }]}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyState}>

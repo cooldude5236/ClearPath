@@ -5,7 +5,6 @@ import {
   View,
   Pressable,
   ScrollView,
-  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,8 +20,6 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { language, setLanguage, units, setUnits } = useSettings();
 
-  const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const webBottomInset = Platform.OS === "web" ? 34 : 0;
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -44,7 +41,7 @@ export default function SettingsScreen() {
       <View
         style={[
           styles.headerWrap,
-          { paddingTop: insets.top + webTopInset + 8 },
+          { paddingTop: insets.top + 8 },
         ]}
       >
         <Text style={styles.appBrand}>CLEARPATH</Text>
@@ -69,7 +66,7 @@ export default function SettingsScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: insets.bottom + webBottomInset + 32 },
+          { paddingBottom: insets.bottom + 32 },
         ]}
       >
         <View style={styles.section}>

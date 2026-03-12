@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Pressable,
-  Platform,
   FlatList,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -199,8 +198,6 @@ export default function DirectionsScreen() {
     ? groundLocation ? getLocationDirections(groundLocation) : []
     : room ? getDirections(room, (routeType as RouteType) || "accessible") : [];
 
-  const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const webBottomInset = Platform.OS === "web" ? 34 : 0;
 
   const speakStep = useCallback(
     (step: DirectionStep) => {
@@ -308,7 +305,7 @@ export default function DirectionsScreen() {
 
   if (!isLocationMode && !room) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top + webTopInset + 20 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
         <View style={styles.errorState}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.warning} />
           <Text style={styles.errorText}>Room not found</Text>
@@ -322,7 +319,7 @@ export default function DirectionsScreen() {
 
   if (isLocationMode && !groundLocation) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top + webTopInset + 20 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
         <View style={styles.errorState}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.warning} />
           <Text style={styles.errorText}>Location not found</Text>
@@ -339,7 +336,7 @@ export default function DirectionsScreen() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + webTopInset + 4 },
+          { paddingTop: insets.top + 4 },
         ]}
       >
         <Text style={styles.appBrand}>CLEARPATH</Text>
@@ -409,7 +406,7 @@ export default function DirectionsScreen() {
         )}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: 120 + insets.bottom + webBottomInset },
+          { paddingBottom: 120 + insets.bottom },
         ]}
         scrollEnabled={!!steps.length}
         showsVerticalScrollIndicator={false}
@@ -427,7 +424,7 @@ export default function DirectionsScreen() {
       <View
         style={[
           styles.bottomBar,
-          { paddingBottom: insets.bottom + webBottomInset + 12 },
+          { paddingBottom: insets.bottom + 12 },
         ]}
       >
         <View style={styles.navButtons}>

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, Pressable, Platform } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
@@ -30,8 +30,6 @@ export default function ArrivedScreen() {
 
   const isLocation = !!locationName;
 
-  const webTopInset = Platform.OS === "web" ? 67 : 0;
-  const webBottomInset = Platform.OS === "web" ? 34 : 0;
 
   const checkScale = useSharedValue(0);
   const checkOpacity = useSharedValue(0);
@@ -91,8 +89,8 @@ export default function ArrivedScreen() {
         style={[
           styles.content,
           {
-            paddingTop: insets.top + webTopInset + 20,
-            paddingBottom: insets.bottom + webBottomInset + 32,
+            paddingTop: insets.top + 20,
+            paddingBottom: insets.bottom + 32,
           },
         ]}
       >
