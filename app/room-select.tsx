@@ -26,7 +26,7 @@ import {
 type TabType = "keypad" | "room" | "ground";
 
 const CATEGORY_ICONS: Record<LocationCategory, keyof typeof MaterialCommunityIcons.glyphMap> = {
-  "Hotel Services": "concierge",
+  "Hotel Services": "room-service",
   "Dining & Drinks": "silverware-fork-knife",
   Shopping: "shopping",
   "Recreation & Wellness": "pool",
@@ -164,8 +164,16 @@ export default function RoomSelectScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } else {
       if (keypadValue.length < 4) {
-        setKeypadValue((v) => v + key);
+        const next = keypadValue + key;
+        setKeypadValue(next);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        const match = ROOMS.find((r) => r.number === next && r.tower === keypadTower);
+        if (match && next.length >= 3) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          setTimeout(() => {
+            router.push({ pathname: "/route-choice", params: { roomNumber: match.number, tower: match.tower } });
+          }, 300);
+        }
       }
     }
   };
@@ -345,13 +353,15 @@ export default function RoomSelectScreen() {
               !keypadValue && styles.goButtonDisabled,
               pressed && keypadValue ? { opacity: 0.9, transform: [{ scale: 0.98 }] } : undefined,
             ]}
-            accessibilityLabel={keypadValue ? `Find room ${keypadValue} in ${keypadTower} Tower` : "Find My Room, enter a room number first"}
+            accessibilityLabel={keypadMatch ? `Go to Room ${keypadValue}` : keypadValue ? `Find room ${keypadValue} in ${keypadTower} Tower` : "Find My Room, enter a room number first"}
             accessibilityRole="button"
             accessibilityState={{ disabled: !keypadValue }}
             accessibilityHint={keypadValue ? "Double tap to get directions to this room" : ""}
           >
-            <MaterialCommunityIcons name="magnify" size={22} color={Colors.textLight} />
-            <Text style={styles.goButtonText}>Find My Room</Text>
+            <MaterialCommunityIcons name="map-marker-path" size={22} color={Colors.textLight} />
+            <Text style={styles.goButtonText}>
+              {keypadMatch ? `Go to Room ${keypadValue}` : "Find My Room"}
+            </Text>
           </Pressable>
         </ScrollView>
       )}

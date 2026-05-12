@@ -74,12 +74,17 @@ export default function SettingsScreen() {
             <Ionicons name="information-circle" size={20} color={Colors.primary} />
             <Text style={styles.sectionTitle}>About</Text>
           </View>
-          <View style={styles.card} accessible={true} accessibilityRole="text" accessibilityLabel="Team 2-1016-1, TSA Software Development. Revision 8. Build Version 21016.033.08.01">
-            <Text style={styles.aboutLine}>Team 2-1016-1</Text>
-            <Text style={styles.aboutLine}>TSA Software Development</Text>
+          <View style={styles.card} accessible={true} accessibilityRole="text" accessibilityLabel="ClearPath. Navigation assistant for Hilton DoubleTree at the Entrance to Universal Orlando Resort. Team 2-1016-1, TSA Software Development. Revision 8. Build Version 21016.033.08.01">
+            <Text style={styles.aboutAppName}>ClearPath</Text>
+            <Text style={styles.aboutTagline}>Your way to your stay</Text>
             <View style={styles.aboutDivider} />
-            <Text style={styles.aboutDetail}>Revision 8</Text>
-            <Text style={styles.aboutDetail}>Build Ver. 21016.033.08.01</Text>
+            <Text style={styles.aboutLine}>Hilton DoubleTree</Text>
+            <Text style={styles.aboutDetail}>at the Entrance to Universal Orlando Resort</Text>
+            <Text style={styles.aboutDetail}>5780 Major Blvd, Orlando, FL 32819</Text>
+            <View style={styles.aboutDivider} />
+            <Text style={styles.aboutLine}>Team 2-1016-1</Text>
+            <Text style={styles.aboutDetail}>TSA Software Development</Text>
+            <Text style={styles.aboutDetail}>Revision 8 · Build Ver. 21016.033.08.01</Text>
           </View>
         </View>
 
@@ -252,6 +257,21 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  aboutAppName: {
+    fontFamily: "Inter_700Bold",
+    fontSize: 22,
+    color: Colors.primary,
+    textAlign: "center",
+    letterSpacing: 1.5,
+  },
+  aboutTagline: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: "center",
+    marginTop: 2,
+    fontStyle: "italic",
   },
   aboutLine: {
     fontFamily: "Inter_600SemiBold",

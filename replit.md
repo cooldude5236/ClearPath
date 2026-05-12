@@ -1,10 +1,10 @@
-# RoomFinder - Hotel Navigation App
+# ClearPath - Hotel Navigation App
 
 ## Overview
 
-RoomFinder is a mobile navigation app built with Expo/React Native for the Hilton DoubleTree hotel at Universal Orlando Resort. The app helps guests find their rooms by providing step-by-step directions from the lobby, supporting both standard and accessible routes. It features a multi-screen flow: Welcome → Room Selection → Route Choice → Turn-by-Turn Directions with voice narration.
+ClearPath is a mobile navigation app built with Expo/React Native for the Hilton DoubleTree hotel at Universal Orlando Resort (5780 Major Blvd, Orlando, FL 32819). The app helps guests find their rooms by providing step-by-step directions from the lobby, supporting both standard and accessible routes. It features a multi-screen flow: Welcome → Room Selection → Route Choice → Turn-by-Turn Directions with voice narration.
 
-The app is structured as a cross-platform Expo application (iOS, Android, Web) with a companion Express.js backend server. Hotel room and direction data is stored as static constants client-side — no dynamic room data is fetched from the server.
+The app is structured as a cross-platform Expo application (iOS, Android) with a companion Express.js backend server. Hotel room and direction data is stored as static constants client-side — no dynamic room data is fetched from the server.
 
 **Screens:**
 - `index.tsx` — Welcome/landing screen with animated UI

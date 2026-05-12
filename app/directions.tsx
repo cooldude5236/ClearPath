@@ -463,6 +463,7 @@ export default function DirectionsScreen() {
             style={({ pressed }) => [
               styles.navButton,
               styles.nextButton,
+              currentStep === steps.length - 1 && styles.nextButtonArrived,
               pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
             ]}
             accessibilityLabel={
@@ -474,7 +475,7 @@ export default function DirectionsScreen() {
             }
           >
             <Text style={styles.nextButtonText}>
-              {currentStep === steps.length - 1 ? "Arrived" : "Next"}
+              {currentStep === steps.length - 1 ? "I've Arrived" : "Next"}
             </Text>
             <Ionicons
               name={currentStep === steps.length - 1 ? "checkmark-circle" : "arrow-forward"}
@@ -720,6 +721,9 @@ const styles = StyleSheet.create({
   nextButton: {
     backgroundColor: Colors.primary,
     flex: 1.5,
+  },
+  nextButtonArrived: {
+    backgroundColor: Colors.success,
   },
   navButtonDisabled: {
     opacity: 0.4,

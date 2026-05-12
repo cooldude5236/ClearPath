@@ -146,6 +146,21 @@ export default function ArrivedScreen() {
 
         <Animated.View style={[styles.bottomArea, buttonStyle]}>
           <Pressable
+            onPress={() => {
+              router.push("/room-select");
+            }}
+            style={({ pressed }) => [
+              styles.findAnotherButton,
+              pressed && { opacity: 0.8 },
+            ]}
+            accessibilityLabel="Find Another Room"
+            accessibilityRole="button"
+            accessibilityHint="Double tap to search for another room"
+          >
+            <MaterialCommunityIcons name="map-search" size={20} color={Colors.accentLight} />
+            <Text style={styles.findAnotherText}>Find Another Room</Text>
+          </Pressable>
+          <Pressable
             onPress={handleGoHome}
             style={({ pressed }) => [
               styles.homeButton,
@@ -246,6 +261,21 @@ const styles = StyleSheet.create({
   bottomArea: {
     width: "100%",
     gap: 12,
+  },
+  findAnotherButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    borderRadius: 18,
+    paddingVertical: 16,
+    width: "100%",
+    marginBottom: 10,
+  },
+  findAnotherText: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: Colors.accentLight,
   },
   homeButton: {
     flexDirection: "row",
